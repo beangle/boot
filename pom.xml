@@ -1,0 +1,42 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>org.beangle</groupId>
+    <artifactId>beangle-scala</artifactId>
+    <version>24.5</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.beangle.repo</groupId>
+  <artifactId>beangle-repo-parent</artifactId>
+  <packaging>pom</packaging>
+  <name>Beangle Repository Toolkit</name>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <properties>
+    <beangle.commons.version>5.1.0.M1</beangle.commons.version>
+    <beangle.mvc.version>0.3.15</beangle.mvc.version>
+    <beangle.cdi.version>0.0.14</beangle.cdi.version>
+  </properties>
+
+  <description>
+    Beangle Maven Tool Kit
+  </description>
+
+  <modules>
+    <module>artifact</module>
+    <module>mirror</module>
+  </modules>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.beangle.commons</groupId>
+      <artifactId>beangle-commons-core_2.12</artifactId>
+      <version>${beangle.commons.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.beangle.commons</groupId>
+      <artifactId>beangle-commons-file_2.12</artifactId>
+      <version>${beangle.commons.version}</version>
+    </dependency>
+  </dependencies>
+</project>
