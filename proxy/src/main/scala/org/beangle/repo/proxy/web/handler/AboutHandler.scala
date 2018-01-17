@@ -16,22 +16,20 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Beangle.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.beangle.maven.repo.web
+package org.beangle.repo.proxy.web.handler
 
-import org.beangle.webmvc.dispatch.{ Route, RouteProvider }
-import org.beangle.commons.net.http.HttpMethods._
-import org.beangle.maven.repo.web.handler.GetHandler
-import org.beangle.maven.repo.web.handler.HeadHandler
-import org.beangle.maven.repo.web.handler.AboutHandler
+import java.io.FileInputStream
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import org.beangle.commons.io.IOs
+import org.beangle.webmvc.execution.Handler
+import org.beangle.commons.lang.ClassLoaders
 
-/**
- * @author chaostone
- */
-class RouteConfig extends RouteProvider {
+class AboutHandler extends Handler {
 
-  def routes: Iterable[Route] = {
-    List(new Route(GET, "/{path*}", new GetHandler),
-      new Route(HEAD, "/{path*}", new HeadHandler),
-      new Route(GET, "/about", new AboutHandler))
+  def handle(request: HttpServletRequest, response: HttpServletResponse): Any = {
+    response.setContentType("text/html")
+    IOs.copy(ClassLoaders.getResourceAsStream("about.html").get, response.getOutputStream)
   }
+
 }

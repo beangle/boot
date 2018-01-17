@@ -7,17 +7,17 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.beangle.repo</groupId>
-  <artifactId>beangle-repo-mirror_2.12</artifactId>
+  <artifactId>beangle-repo-proxy_2.12</artifactId>
   <packaging>war</packaging>
-  <name>Beangle Repo Mirror</name>
+  <name>Beangle Repo Proxy</name>
 
   <properties>
-    <bundle.symbolicName>org.beangle.repo.mirror</bundle.symbolicName>
-    <bundle.namespace>org.beangle.repo.mirror</bundle.namespace>
+    <bundle.symbolicName>org.beangle.repo.proxy</bundle.symbolicName>
+    <bundle.namespace>org.beangle.repo.proxy</bundle.namespace>
   </properties>
 
   <description>
-    Beangle  Repository Mirror
+    Beangle  Repository Proxy
   </description>
 
   <dependencies>

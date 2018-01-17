@@ -24,7 +24,7 @@
 
   <modules>
     <module>artifact</module>
-    <module>mirror</module>
+    <module>proxy</module>
   </modules>
 
   <dependencies>

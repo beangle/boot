@@ -18,14 +18,12 @@
  */
 package org.beangle.repo.artifact.downloader
 
-import java.io.{ Closeable, File, IOException }
-import java.net.{ HttpURLConnection, URL }
-import java.net.HttpURLConnection._
-import java.io.FileOutputStream
+import java.io.{ File, FileOutputStream, IOException, InputStream, OutputStream }
+import java.net.{ URL, URLConnection }
+import java.net.HttpURLConnection.{ HTTP_FORBIDDEN, HTTP_NOT_FOUND, HTTP_OK, HTTP_UNAUTHORIZED }
+import java.net.HttpURLConnection
+
 import org.beangle.commons.io.IOs
-import java.io.OutputStream
-import java.io.InputStream
-import java.net.URLConnection
 
 abstract class AbstractDownloader(val name: String, val url: String, protected val location: String) extends Downloader {
   protected var status: Downloader.Status = null
