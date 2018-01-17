@@ -16,20 +16,23 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Beangle.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.beangle.maven.repo.web.handler
+package org.beangle.repo.proxy.web
 
-import java.io.FileInputStream
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-import org.beangle.commons.io.IOs
-import org.beangle.webmvc.execution.Handler
-import org.beangle.commons.lang.ClassLoaders
+import java.util.EnumSet
+import org.beangle.webmvc.dispatch.Dispatcher
+import javax.servlet.{ DispatcherType, ServletContext }
+import org.beangle.cdi.spring.web.ContextListener
 
-class AboutHandler extends Handler {
+class Initializer extends org.beangle.commons.web.init.Initializer {
 
-  def handle(request: HttpServletRequest, response: HttpServletResponse): Any = {
-    response.setContentType("text/html")
-    IOs.copy(ClassLoaders.getResourceAsStream("about.html").get, response.getOutputStream)
+  override def onStartup(sc: ServletContext) {
+    sc.setInitParameter("templatePath", "class://")
+
+    val ctxListener = new ContextListener
+    ctxListener.childContextConfigLocation = "WebApplicationContext:Action@classpath:spring-web-context.xml"
+    val container = ctxListener.loadContainer()
+    addListener(ctxListener)
+
+    sc.addServlet("Action", new Dispatcher(container)).addMapping("/*")
   }
-
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <cdi>
   <container name="web">
-    <module class="org.beangle.maven.repo.web.DefaultModule"/>
+    <module class="org.beangle.repo.proxy.web.DefaultModule"/>
   </container>
 </cdi>

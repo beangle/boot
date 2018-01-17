@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Beangle.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.beangle.maven.repo.service
+package org.beangle.repo.proxy.service
 
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.lang.{ Strings, SystemInfo }
