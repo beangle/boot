@@ -25,7 +25,9 @@ import java.net.HttpURLConnection
 
 import org.beangle.commons.io.IOs
 
-abstract class AbstractDownloader(val name: String, val url: String, protected val location: String) extends Downloader {
+abstract class AbstractDownloader(val name: String, val url: URL, protected val location: File)
+  extends Downloader {
+
   protected var status: Downloader.Status = null
   protected var startAt: Long = _
 
@@ -38,14 +40,13 @@ abstract class AbstractDownloader(val name: String, val url: String, protected v
   }
 
   def start(): Unit = {
-    val file = new File(location)
-    if (file.exists()) return
-    file.getParentFile.mkdirs()
+    if (location.exists()) return
+    location.getParentFile.mkdirs()
     this.startAt = System.currentTimeMillis
-    downloading(new URL(url))
+    downloading()
   }
 
-  protected def downloading(resource: URL): Unit
+  protected def downloading(): Unit
 
   protected def httpCodeString(httpCode: Int): String = {
     httpCode match {
@@ -57,26 +58,18 @@ abstract class AbstractDownloader(val name: String, val url: String, protected v
     }
   }
 
-  protected def access(url: URL, method: String = "GET"): ResourceStatus = {
+  protected def access(): ResourceStatus = {
     try {
       val hc = url.openConnection().asInstanceOf[HttpURLConnection]
-      hc.setRequestMethod(method)
+      hc.setRequestMethod("HEAD")
       val rc = hc.getResponseCode
+      val supportRange = ("bytes" == hc.getHeaderField("Accept-Ranges"))
       rc match {
-        case HTTP_OK => ResourceStatus(rc, hc.getContentLengthLong, hc)
-        case _       => ResourceStatus(rc, -1, null)
+        case HTTP_OK => ResourceStatus(rc, hc.getHeaderFieldLong("Content-Length", -1), hc, supportRange)
+        case _       => ResourceStatus(rc, -1, null, false)
       }
     } catch {
-      case e: IOException => ResourceStatus(-1, -1, null)
-    }
-  }
-
-  private def buildRedirect(loc: String, ref: URL): URL = {
-    if (null == loc) return null
-    if (loc.startsWith("http:") || loc.startsWith("https:")) {
-      new URL(loc)
-    } else {
-      new URL(ref.getProtocol + "://" + ref.getHost + ":" + ref.getPort + loc)
+      case e: IOException => ResourceStatus(-1, -1, null, false)
     }
   }
 
@@ -107,7 +100,7 @@ abstract class AbstractDownloader(val name: String, val url: String, protected v
         status.count.addAndGet(n)
         n = input.read(buffer)
       }
-      file.renameTo(new File(location))
+      file.renameTo(location)
       if (this.status.total < 0) {
         this.status.total = this.status.count.get
       }
@@ -117,5 +110,5 @@ abstract class AbstractDownloader(val name: String, val url: String, protected v
     finish(conn.getURL, System.currentTimeMillis - startAt)
   }
 
-  case class ResourceStatus(status: Int, length: Long, conn: HttpURLConnection = null)
+  case class ResourceStatus(status: Int, length: Long, conn: HttpURLConnection = null, supportRange: Boolean)
 }

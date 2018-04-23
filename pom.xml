@@ -13,8 +13,8 @@
   <version>0.0.3-SNAPSHOT</version>
 
   <properties>
-    <beangle.commons.version>5.1.0.M2</beangle.commons.version>
-    <beangle.mvc.version>0.3.16</beangle.mvc.version>
+    <beangle.commons.version>5.1.0.M3</beangle.commons.version>
+    <beangle.mvc.version>0.3.17</beangle.mvc.version>
     <beangle.cdi.version>0.0.15</beangle.cdi.version>
   </properties>
 

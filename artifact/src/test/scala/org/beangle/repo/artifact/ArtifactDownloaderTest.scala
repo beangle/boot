@@ -18,7 +18,10 @@
  */
 package org.beangle.repo.artifact
 
+import java.io.File
+
 import org.beangle.commons.collection.Collections
+import org.beangle.commons.io.Dirs
 import org.junit.runner.RunWith
 import org.scalatest.{ FunSpec, Matchers }
 import org.scalatest.junit.JUnitRunner
@@ -26,15 +29,19 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ArtifactDownloaderTest extends FunSpec with Matchers {
 
-  var downloader = ArtifactDownloader(Repo.Remote.AliyunURL, "/tmp/repository")
+  val downloader = ArtifactDownloader(Repo.Remote.AliyunURL, "/tmp/repository")
 
-  val slf4j_1_7_24 = new Artifact("org.slf4j", "slf4j-api", "1.7.24", None, "jar");
-  val slf4j_1_7_25 = new Artifact("org.slf4j", "slf4j-api", "1.7.25", None, "jar");
+  val huaweiloader = ArtifactDownloader("https://mirrors.huaweicloud.com/repository/maven/", "/tmp/repository")
+  huaweiloader.authorization("anonymous", "devcloud")
 
-  val test = new Artifact("org.slf4j", "slf4j-api", "1.7.25", Some("sources"), "jar.sha1");
+  val slf4j_1_7_24 = new Artifact("org.slf4j", "slf4j-api", "1.7.24", None, "jar")
+  val slf4j_1_7_25 = new Artifact("org.slf4j", "slf4j-api", "1.7.25", None, "jar")
+
+  val slf4j_1_8_0 = new Artifact("org.slf4j", "slf4j-api", "1.8.0-beta2", None, "jar");
 
   describe("artifact downloader") {
     it("can download such jars") {
+      Dirs.delete(new File("/tmp/repository"))
       val artifacts = Collections.newBuffer[Artifact]
       artifacts += slf4j_1_7_24
       artifacts += slf4j_1_7_25
@@ -45,6 +52,11 @@ class ArtifactDownloaderTest extends FunSpec with Matchers {
       artifacts += Artifact("xml-apis", "xml-apis", "1.4.01")
       artifacts += Artifact("net.sf.json-lib:json-lib:jdk15:2.4")
       downloader.download(artifacts)
+    }
+
+    it("can download with password") {
+      Dirs.delete(new File("/tmp/repository"))
+      huaweiloader.download(List(slf4j_1_8_0))
     }
   }
 }

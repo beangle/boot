@@ -22,9 +22,9 @@ import java.io.{ File, FileOutputStream, InputStream, OutputStream }
 import java.net.URL
 import org.beangle.commons.io.IOs
 
-class DefaultDownloader(id: String, url: String, location: String) extends AbstractDownloader(id, url, location) {
-  protected override def downloading(resource: URL) {
-    println("Downloading " + resource)
-    super.defaultDownloading(resource.openConnection())
+class DefaultDownloader(id: String, url: URL, location: File) extends AbstractDownloader(id, url, location) {
+  protected override def downloading() {
+    println("Downloading " + url)
+    super.defaultDownloading(url.openConnection())
   }
 }
