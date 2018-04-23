@@ -22,25 +22,47 @@ import java.io.{ File, FileOutputStream }
 import java.net.{ HttpURLConnection, URL }
 import java.util.concurrent.{ Callable, ExecutorService, Executors }
 import org.beangle.commons.io.IOs
+import org.beangle.commons.collection.Collections
 
-class RangeDownloader(name: String, url: String, location: String) extends AbstractDownloader(name, url, location) {
+object RangeDownloader {
+  def apply(name: String, url: String, location: String): RangeDownloader = {
+    new RangeDownloader(name, new URL(url), new File(location))
+  }
+}
+
+class RangeDownloader(name: String, url: URL, location: File) extends AbstractDownloader(name, url, location) {
 
   var threads: Int = 20
 
+  //one step is 100k
   var step: Int = 100 * 1024
 
   var executor: ExecutorService = Executors.newFixedThreadPool(threads)
 
-  protected override def downloading(resource: URL) {
-    println("Downloading " + resource)
-    val urlStatus = access(resource)
+  private val properties = Collections.newMap[String, String]
+
+  def addProperty(name: String, value: String): this.type = {
+    properties.put(name, value)
+    this
+  }
+
+  def addProperties(props: collection.Map[String, String]): this.type = {
+    properties ++= props
+    this
+  }
+
+  protected override def downloading() {
+    val urlStatus = access()
     if (null == urlStatus.conn) {
-      println("\r" + httpCodeString(urlStatus.status) + " " + resource)
+      println("\r" + httpCodeString(urlStatus.status) + " " + url)
       return
     }
-    if (urlStatus.length < 0) {
+    if (urlStatus.length < 0 || !urlStatus.supportRange) {
       super.defaultDownloading(urlStatus.conn)
+      println("Downloading " + url)
       return
+    } else {
+      println("Range-Downloading " + url)
     }
     val newUrl = urlStatus.conn.getURL
     this.status = new Downloader.Status(urlStatus.length)
@@ -60,11 +82,17 @@ class RangeDownloader(name: String, url: String, location: String) extends Abstr
         def call(): Integer = {
           val connection = newUrl.openConnection().asInstanceOf[HttpURLConnection]
           connection.setRequestProperty("RANGE", "bytes=" + start + "-" + end)
+          properties foreach (e => connection.setRequestProperty(e._1, e._2))
           val input = connection.getInputStream
           val buffer = Array.ofDim[Byte](1024)
           var n = input.read(buffer)
           var next = start
-          while (-1 != n) {
+          var tooMore = false
+          while (-1 != n && !tooMore) {
+            if (next + n - 1 > end) {
+              n = end - next + 1
+              tooMore = true
+            }
             System.arraycopy(buffer, 0, totalbuffer, next, n)
             status.count.addAndGet(n)
             next += n
@@ -83,13 +111,12 @@ class RangeDownloader(name: String, url: String, location: String) extends Abstr
       case e: Throwable => e.printStackTrace()
     }
     if (status.count.get == status.total) {
-      val targetFile = new File(location)
-      val output = new FileOutputStream(targetFile)
+      val output = new FileOutputStream(location)
       output.write(totalbuffer, 0, total)
-      targetFile.setLastModified(conn.getLastModified)
+      location.setLastModified(conn.getLastModified)
       IOs.close(output)
     } else {
-      throw new RuntimeException("Download error")
+      throw new RuntimeException(s"Download error: expect ${status.total} but get ${status.count.get}.")
     }
     finish(conn.getURL, System.currentTimeMillis() - startAt)
   }

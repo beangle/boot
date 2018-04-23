@@ -19,6 +19,7 @@
 package org.beangle.repo.artifact.downloader
 
 import java.util.concurrent.atomic.AtomicLong
+import java.net.URL
 
 object Downloader {
   class Status(var total: Long) {
@@ -28,7 +29,7 @@ object Downloader {
 
 trait Downloader {
 
-  def url: String
+  def url: URL
 
   def start(): Unit
 

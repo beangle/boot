@@ -19,10 +19,13 @@
 package org.beangle.repo.artifact
 
 import java.io.IOException
+import java.net.URL
 import java.util.concurrent.{ ConcurrentHashMap, Executors }
 
 import scala.collection.JavaConverters.mapAsScalaMap
 
+import org.beangle.commons.codec.binary.Base64
+import org.beangle.commons.collection.Collections
 import org.beangle.repo.artifact.downloader.{ Downloader, RangeDownloader }
 import org.beangle.repo.artifact.util.Delta
 
@@ -40,11 +43,18 @@ object ArtifactDownloader {
     new ArtifactDownloader(Repo.remote(remote), Repo.local(base))
   }
 }
+
 class ArtifactDownloader(private val remote: Repo.Remote, private val local: Repo.Local) {
 
-  private val statuses = new ConcurrentHashMap[String, Downloader]()
+  private val statuses = new ConcurrentHashMap[URL, Downloader]()
 
   private val executor = Executors.newFixedThreadPool(5)
+
+  private val properties = Collections.newMap[String, String]
+
+  def authorization(username: String, password: String): Unit = {
+    properties.put("Authorization", "Basic " + Base64.encode(s"$username:$password".getBytes))
+  }
 
   def download(artifacts: Iterable[Artifact]): Unit = {
     val sha1s = new collection.mutable.ArrayBuffer[Artifact]
@@ -66,7 +76,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     doDownload(sha1s);
 
     // download diffs and patch them.
-    doDownload(diffs);
+    doDownload(diffs)
     val newers = new collection.mutable.ArrayBuffer[Artifact]
     for (diff <- diffs) {
       val diffFile = local.file(diff)
@@ -82,7 +92,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
         newers += artifact
       }
     }
-    doDownload(newers);
+    doDownload(newers)
     // verify sha1 against newer artifacts.
     for (artifact <- newers) {
       local.verifySha1(artifact)
@@ -98,7 +108,8 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
         val id = idx
         executor.execute(new Runnable() {
           def run() {
-            val downloader = new RangeDownloader(id + "/" + products.size, remote.url(artifact), local.url(artifact))
+            val downloader = RangeDownloader(id + "/" + products.size, remote.url(artifact), local.url(artifact))
+            downloader.addProperties(properties)
             statuses.put(downloader.url, downloader)
             try {
               downloader.start()

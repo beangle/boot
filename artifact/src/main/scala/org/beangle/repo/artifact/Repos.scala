@@ -31,7 +31,7 @@ trait Repos {
   def download(path: String, remote: Repo.Remote): File = {
     val localFile = local.file(path)
     if (!localFile.exists()) {
-      new RangeDownloader("download", remote.base + path, localFile.getAbsolutePath).start()
+      RangeDownloader("download", remote.base + path, localFile.getAbsolutePath).start()
     }
     localFile
   }
