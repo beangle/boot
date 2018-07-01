@@ -39,14 +39,17 @@ object Repo {
     def id: String
     def base: String
     def layout: Layout
+
     def exists(filePath: String): Boolean
+
     def exists(a: Artifact): Boolean = {
-      exists(base + layout.path(a))
+      exists(layout.path(a))
     }
+
     def url(p: Product): String = {
       p match {
         case a: Artifact => base + layout.path(a)
-        case d: Diff => base + layout.path(d)
+        case d: Diff     => base + layout.path(d)
       }
     }
   }
@@ -58,7 +61,7 @@ object Repo {
     new File(this.base).mkdirs()
 
     override def exists(path: String): Boolean = {
-      new File(base + path).exists()
+      new File(base + path).exists
     }
 
     def file(filePath: String): File = {
@@ -72,7 +75,7 @@ object Repo {
     def verifySha1(artifact: Artifact): Boolean = {
       val sha1 = artifact.sha1
       if (exists(artifact) && exists(sha1)) {
-        println("Verify " + sha1)
+        println("Verifing " + sha1)
         val sha1sum = Delta.sha1(url(artifact))
         val sha1inFile = IOs.readString(new FileInputStream(url(sha1)), Charsets.UTF_8).trim()
         if (!sha1sum.startsWith(sha1inFile)) {
@@ -148,7 +151,7 @@ object Repo {
     override def equals(any: Any): Boolean = {
       any match {
         case r: Remote => r.id.equals(this.id)
-        case _ => false
+        case _         => false
       }
     }
     override def toString: String = {
