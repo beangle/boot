@@ -38,6 +38,9 @@ class HeadHandler extends Handler {
     val local = repos.local
     val localFile = local.file(filePath)
     if (localFile.exists) {
+      response.setContentLengthLong(localFile.length)
+      response.setDateHeader("Last-Modified", localFile.lastModified)
+      response.setHeader("Accept-Ranges", "bytes")
       response.setStatus(SC_OK)
     } else {
       if (filePath.endsWith(".diff")) {
@@ -45,12 +48,8 @@ class HeadHandler extends Handler {
       } else {
         repos.find(filePath) match {
           case Some(repo) =>
-            if (repos.cacheable) {
-              response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY)
-              response.setHeader("Location", repo.base + filePath)
-            } else {
-              response.setStatus(HttpServletResponse.SC_OK)
-            }
+            response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY)
+            response.setHeader("Location", repo.base + filePath)
           case None => response.setStatus(HttpServletResponse.SC_NOT_FOUND)
         }
       }
