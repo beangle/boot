@@ -65,11 +65,11 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
       val rc = hc.getResponseCode
       val supportRange = ("bytes" == hc.getHeaderField("Accept-Ranges"))
       rc match {
-        case HTTP_OK => ResourceStatus(rc, hc.getHeaderFieldLong("Content-Length", -1), hc, supportRange)
-        case _       => ResourceStatus(rc, -1, null, false)
+        case HTTP_OK => ResourceStatus(rc, hc.getHeaderFieldLong("Content-Length", 0), supportRange)
+        case _       => ResourceStatus(rc, 0, false)
       }
     } catch {
-      case e: IOException => ResourceStatus(-1, -1, null, false)
+      case e: IOException => ResourceStatus(-1, -1, false)
     }
   }
 
@@ -110,5 +110,5 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
     finish(conn.getURL, System.currentTimeMillis - startAt)
   }
 
-  case class ResourceStatus(status: Int, length: Long, conn: HttpURLConnection = null, supportRange: Boolean)
+  case class ResourceStatus(status: Int, length: Long, supportRange: Boolean)
 }

@@ -21,8 +21,9 @@ package org.beangle.repo.artifact.downloader
 import java.io.{ File, FileOutputStream }
 import java.net.{ HttpURLConnection, URL }
 import java.util.concurrent.{ Callable, ExecutorService, Executors }
-import org.beangle.commons.io.IOs
+
 import org.beangle.commons.collection.Collections
+import org.beangle.commons.io.IOs
 
 object RangeDownloader {
   def apply(name: String, url: String, location: String): RangeDownloader = {
@@ -53,24 +54,24 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
 
   protected override def downloading() {
     val urlStatus = access()
-    if (null == urlStatus.conn) {
+    if (urlStatus.length < 0) {
       println("\r" + httpCodeString(urlStatus.status) + " " + url)
       return
     }
-    if (urlStatus.length < 0 || !urlStatus.supportRange) {
-      super.defaultDownloading(urlStatus.conn)
+    if (urlStatus.length == 0 || !urlStatus.supportRange) {
+      super.defaultDownloading(url.openConnection())
       println("Downloading " + url)
       return
     } else {
       println("Range-Downloading " + url)
     }
-    val newUrl = urlStatus.conn.getURL
+    val originConn = url.openConnection
+    val newUrl = originConn.getURL
     this.status = new Downloader.Status(urlStatus.length)
     if (this.status.total > java.lang.Integer.MAX_VALUE) {
       throw new RuntimeException(s"Cannot download ${url} with size ${this.status.total}")
     }
 
-    val conn = urlStatus.conn
     val total = this.status.total.toInt
     val totalbuffer = Array.ofDim[Byte](total)
     var begin = 0
@@ -113,12 +114,12 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
     if (status.count.get == status.total) {
       val output = new FileOutputStream(location)
       output.write(totalbuffer, 0, total)
-      location.setLastModified(conn.getLastModified)
+      location.setLastModified(originConn.getLastModified)
       IOs.close(output)
     } else {
       throw new RuntimeException(s"Download error: expect ${status.total} but get ${status.count.get}.")
     }
-    finish(conn.getURL, System.currentTimeMillis() - startAt)
+    finish(url, System.currentTimeMillis() - startAt)
   }
 
 }
