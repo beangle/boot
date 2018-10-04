@@ -74,6 +74,7 @@ class GetHandler extends Handler {
     val ext = Strings.substringAfterLast(fileName, ".")
     if (Strings.isNotEmpty(ext)) MimeTypes.getMimeType(ext) foreach (m => response.setContentType(m.toString))
     if (!fileName.contains("SNAPSHOT")) CacheControl.expiresAfter(10, response)
+    response.setDateHeader("Last-Modified", file.lastModified)
     wagon.copy(new FileInputStream(file), request, response)
   }
 

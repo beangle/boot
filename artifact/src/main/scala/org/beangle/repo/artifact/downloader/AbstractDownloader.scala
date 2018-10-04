@@ -20,7 +20,7 @@ package org.beangle.repo.artifact.downloader
 
 import java.io.{ File, FileOutputStream, IOException, InputStream, OutputStream }
 import java.net.{ URL, URLConnection }
-import java.net.HttpURLConnection.{ HTTP_FORBIDDEN, HTTP_NOT_FOUND, HTTP_OK, HTTP_UNAUTHORIZED }
+import java.net.HttpURLConnection.{ HTTP_FORBIDDEN, HTTP_NOT_FOUND, HTTP_OK, HTTP_UNAUTHORIZED, HTTP_MOVED_PERM, HTTP_MOVED_TEMP }
 import java.net.HttpURLConnection
 
 import org.beangle.commons.io.IOs
@@ -65,11 +65,12 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
       val rc = hc.getResponseCode
       val supportRange = ("bytes" == hc.getHeaderField("Accept-Ranges"))
       rc match {
-        case HTTP_OK => ResourceStatus(rc, hc.getHeaderFieldLong("Content-Length", 0), supportRange)
-        case _       => ResourceStatus(rc, 0, false)
+        case HTTP_OK | HTTP_MOVED_TEMP | HTTP_MOVED_PERM =>
+          ResourceStatus(rc, hc.getURL, hc.getHeaderFieldLong("Content-Length", 0), hc.getLastModified, supportRange)
+        case _ => ResourceStatus(rc, hc.getURL, -1, -1, false)
       }
     } catch {
-      case e: IOException => ResourceStatus(-1, -1, false)
+      case e: IOException => ResourceStatus(-1, null, -1, 0, false)
     }
   }
 
@@ -110,5 +111,5 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
     finish(conn.getURL, System.currentTimeMillis - startAt)
   }
 
-  case class ResourceStatus(status: Int, length: Long, supportRange: Boolean)
+  case class ResourceStatus(status: Int, target: URL, length: Long, lastModified: Long, supportRange: Boolean)
 }

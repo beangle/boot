@@ -59,14 +59,12 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
       return
     }
     if (urlStatus.length == 0 || !urlStatus.supportRange) {
-      super.defaultDownloading(url.openConnection())
-      println("Downloading " + url)
+      println("Downloading " + urlStatus.target)
+      super.defaultDownloading(urlStatus.target.openConnection)
       return
     } else {
       println("Range-Downloading " + url)
     }
-    val originConn = url.openConnection
-    val newUrl = originConn.getURL
     this.status = new Downloader.Status(urlStatus.length)
     if (this.status.total > java.lang.Integer.MAX_VALUE) {
       throw new RuntimeException(s"Cannot download ${url} with size ${this.status.total}")
@@ -74,6 +72,7 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
 
     val total = this.status.total.toInt
     val totalbuffer = Array.ofDim[Byte](total)
+    var lastModified: Long = urlStatus.lastModified
     var begin = 0
     val tasks = new java.util.ArrayList[Callable[Integer]]
     while (begin < this.status.total) {
@@ -81,10 +80,11 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
       val end = if (((start + step - 1) >= total)) (total - 1) else (start + step - 1)
       tasks.add(new Callable[Integer]() {
         def call(): Integer = {
-          val connection = newUrl.openConnection().asInstanceOf[HttpURLConnection]
+          val connection = urlStatus.target.openConnection.asInstanceOf[HttpURLConnection]
           connection.setRequestProperty("RANGE", "bytes=" + start + "-" + end)
           properties foreach (e => connection.setRequestProperty(e._1, e._2))
           val input = connection.getInputStream
+          if (lastModified == 0) lastModified = connection.getLastModified
           val buffer = Array.ofDim[Byte](1024)
           var n = input.read(buffer)
           var next = start
@@ -114,7 +114,7 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
     if (status.count.get == status.total) {
       val output = new FileOutputStream(location)
       output.write(totalbuffer, 0, total)
-      location.setLastModified(originConn.getLastModified)
+      if (lastModified > 0) location.setLastModified(lastModified)
       IOs.close(output)
     } else {
       throw new RuntimeException(s"Download error: expect ${status.total} but get ${status.count.get}.")
