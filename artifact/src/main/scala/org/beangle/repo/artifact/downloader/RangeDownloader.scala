@@ -58,7 +58,8 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
       println("\r" + httpCodeString(urlStatus.status) + " " + url)
       return
     }
-    if (urlStatus.length == 0 || !urlStatus.supportRange) {
+    //小于100k的普通下载
+    if (urlStatus.length < 102400 || !urlStatus.supportRange) {
       println("Downloading " + urlStatus.target)
       super.defaultDownloading(urlStatus.target.openConnection)
       return

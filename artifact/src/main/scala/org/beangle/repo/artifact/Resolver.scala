@@ -18,19 +18,16 @@
  */
 package org.beangle.repo.artifact
 
+import java.io.{ File, InputStreamReader, LineNumberReader }
 import java.net.URL
-import java.io.InputStreamReader
-import java.io.LineNumberReader
+
 import org.beangle.commons.collection.Collections
-import java.io.File
-import java.rmi.Remote
 
 trait DependencyResolver {
-
   def resolve(resource: URL): Iterable[Artifact]
 }
 
-object BeangleResolver {
+object BeangleResolver extends DependencyResolver {
 
   val DependenciesFile = "META-INF/beangle/container.dependencies"
 
@@ -39,24 +36,46 @@ object BeangleResolver {
       println("Usage:java org.beangle.repo.artifact.BeangleResolver dependency_file remote_url local_base")
       return
     }
-    val dependencyFile = new File(args(0))
     var remote = Repo.Remote.AliyunURL
     var local: String = null
     if (args.length > 1) remote = args(1)
     if (args.length > 2) local = args(2)
-    val resolver = new BeangleResolver()
-    val artifacts = resolver.resolve(dependencyFile.toURI().toURL())
+    val artifacts = resolve(args(0))
     val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
     val localRepo = new Repo.Local(local)
     new ArtifactDownloader(remoteRepo, localRepo).download(artifacts)
+    val missing = artifacts filter (!localRepo.exists(_))
+    if (!missing.isEmpty) {
+      println("Download error :" + missing)
+    }
   }
-}
 
-class BeangleResolver extends DependencyResolver {
+  def resolve(file: String): Iterable[Artifact] = {
+    val dependencyFile = new File(file)
+    if (!dependencyFile.exists) {
+      println(s"Cannot find ${file}")
+      return List.empty
+    }
+    val url: URL =
+      if (file.endsWith(".war")) {
+        val nestedUrl = new URL("jar:file:" + dependencyFile.getAbsolutePath + "!/WEB-INF/classes/META-INF/beangle/container.dependencies")
+        try {
+          nestedUrl.openConnection.connect()
+          nestedUrl
+        } catch {
+          case e: Throwable =>
+            println("Resolving skiped,cannot find META-INF/beangle/container.dependencies.")
+            return List.empty
+        }
+      } else {
+        dependencyFile.toURI().toURL()
+      }
+    resolve(url)
+  }
 
   override def resolve(resource: URL): Iterable[Artifact] = {
     val artifacts = Collections.newBuffer[Artifact]
-    if (null == resource) return Array.ofDim[Artifact](0)
+    if (null == resource) return List.empty
     try {
       val reader = new InputStreamReader(resource.openStream())
       val lr = new LineNumberReader(reader)

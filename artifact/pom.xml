@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.beangle.repo</groupId>
     <artifactId>beangle-repo-parent</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.beangle.repo</groupId>
@@ -20,11 +20,11 @@
     Beangle Repository Artifact
   </description>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-compress</artifactId>
-            <version>1.15</version>
-        </dependency>
-    </dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+       <version>${commons.compress.version}</version>
+    </dependency>
+  </dependencies>
 </project>
