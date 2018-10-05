@@ -78,7 +78,7 @@ object Repo {
         println("Verifing " + sha1)
         val sha1sum = Delta.sha1(url(artifact))
         val sha1inFile = IOs.readString(new FileInputStream(url(sha1)), Charsets.UTF_8).trim()
-        if (!sha1sum.startsWith(sha1inFile)) {
+        if (!sha1inFile.contains(sha1sum)) {
           println("Error sha1 for " + artifact + ",Remove it.")
           new File(url(artifact)).delete()
           false
@@ -160,7 +160,7 @@ object Repo {
   }
 
   class Mirror(id: String, base: String, val pattern: String = "*",
-    layout: Layout = Layout.Maven2) extends Remote(id, base, layout) {
+               layout: Layout = Layout.Maven2) extends Remote(id, base, layout) {
     def matches(filePath: String): Boolean = {
       (pattern == "*" || filePath.startsWith(pattern))
     }

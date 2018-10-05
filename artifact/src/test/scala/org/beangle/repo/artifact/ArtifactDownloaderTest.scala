@@ -46,11 +46,7 @@ class ArtifactDownloaderTest extends FunSpec with Matchers {
       artifacts += slf4j_1_7_24
       artifacts += slf4j_1_7_25
 
-      artifacts += Artifact("antlr", "antlr", "2.7.7")
-      artifacts += Artifact("aopalliance", "aopalliance", "1.0")
-      artifacts += Artifact("asm", "asm-commons", "3.3")
-      artifacts += Artifact("xml-apis", "xml-apis", "1.4.01")
-      artifacts += Artifact("net.sf.json-lib:json-lib:jdk15:2.4")
+      artifacts += Artifact("org.apache.poi:poi-ooxml-schemas:3.17")
       downloader.download(artifacts)
     }
 
