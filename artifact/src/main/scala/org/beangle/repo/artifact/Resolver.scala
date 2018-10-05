@@ -36,38 +36,41 @@ object BeangleResolver extends DependencyResolver {
       println("Usage:java org.beangle.repo.artifact.BeangleResolver dependency_file remote_url local_base")
       return
     }
-    val dependencyFile = new File(args(0))
+    var remote = Repo.Remote.AliyunURL
+    var local: String = null
+    if (args.length > 1) remote = args(1)
+    if (args.length > 2) local = args(2)
+    val artifacts = resolve(args(0))
+    val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
+    val localRepo = new Repo.Local(local)
+    new ArtifactDownloader(remoteRepo, localRepo).download(artifacts)
+    val missing = artifacts filter (!localRepo.exists(_))
+    if (!missing.isEmpty) {
+      println("Download error :" + missing)
+    }
+  }
+
+  def resolve(file: String): Iterable[Artifact] = {
+    val dependencyFile = new File(file)
     if (!dependencyFile.exists) {
-      println(s"Cannot find ${args(0)}")
-      return
+      println(s"Cannot find ${file}")
+      return List.empty
     }
     val url: URL =
-      if (args(0).endsWith(".war")) {
+      if (file.endsWith(".war")) {
         val nestedUrl = new URL("jar:file:" + dependencyFile.getAbsolutePath + "!/WEB-INF/classes/META-INF/beangle/container.dependencies")
         try {
           nestedUrl.openConnection.connect()
           nestedUrl
         } catch {
           case e: Throwable =>
-            println("Resolving aborted,cannot find META-INF/beangle/container.dependencies.")
-            return
+            println("Resolving skiped,cannot find META-INF/beangle/container.dependencies.")
+            return List.empty
         }
       } else {
         dependencyFile.toURI().toURL()
       }
-    var remote = Repo.Remote.AliyunURL
-    var local: String = null
-    if (args.length > 1) remote = args(1)
-    if (args.length > 2) local = args(2)
-    val artifacts = resolve(url)
-    val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
-    val localRepo = new Repo.Local(local)
-    new ArtifactDownloader(remoteRepo, localRepo).download(artifacts)
-
-    val missing = artifacts filter (!localRepo.exists(_))
-    if (!missing.isEmpty) {
-      println("Download error :" + missing)
-    }
+    resolve(url)
   }
 
   override def resolve(resource: URL): Iterable[Artifact] = {
