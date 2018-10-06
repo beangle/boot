@@ -52,14 +52,19 @@ object Artifact {
 }
 
 case class Artifact(val groupId: String, val artifactId: String,
-  val version: String, val classifier: Option[String] = None, val packaging: String = "jar")
-    extends Product {
+                    val version: String, val classifier: Option[String] = None, val packaging: String = "jar")
+  extends Product {
+
+  def packaging(newPackaing: String): Artifact = {
+    Artifact(groupId, artifactId, version, classifier, newPackaing)
+  }
 
   def md5: Artifact = {
-    Artifact(groupId, artifactId, version, classifier, packaging + ".md5");
+    Artifact(groupId, artifactId, version, classifier, packaging + ".md5")
   }
+
   def sha1: Artifact = {
-    Artifact(groupId, artifactId, version, classifier, packaging + ".sha1");
+    Artifact(groupId, artifactId, version, classifier, packaging + ".sha1")
   }
 
   override def toString: String = {
@@ -94,8 +99,8 @@ object Diff {
 }
 
 case class Diff(val groupId: String, val artifactId: String,
-  oldVersion: String, newVersion: String, val classifier: Option[String], packaging: String = "jar")
-    extends Product {
+                oldVersion: String, newVersion: String, val classifier: Option[String], packaging: String = "jar")
+  extends Product {
 
   def older: Artifact = {
     new Artifact(groupId, artifactId, oldVersion, classifier, packaging.replace(".diff", ""))

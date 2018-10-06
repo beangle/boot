@@ -60,20 +60,18 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     val sha1s = new collection.mutable.ArrayBuffer[Artifact]
     val diffs = new collection.mutable.ArrayBuffer[Diff]
 
-    for (artifact <- artifacts) {
-      if (!local.file(artifact).exists) {
-        if (!artifact.packaging.endsWith("sha1")) {
-          val sha1 = artifact.sha1
-          if (!local.file(sha1).exists()) {
-            sha1s += sha1
-          }
-        }
-        local.lastestBefore(artifact) foreach { lastest =>
-          diffs += Diff(lastest, artifact.version)
+    for (artifact <- artifacts if !local.file(artifact).exists) {
+      if (!artifact.packaging.endsWith("sha1")) {
+        val sha1 = artifact.sha1
+        if (!local.file(sha1).exists()) {
+          sha1s += sha1
         }
       }
+      local.lastestBefore(artifact) foreach { lastest =>
+        diffs += Diff(lastest, artifact.version)
+      }
     }
-    doDownload(sha1s);
+    doDownload(sha1s)
 
     // download diffs and patch them.
     doDownload(diffs)

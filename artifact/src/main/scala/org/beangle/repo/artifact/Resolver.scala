@@ -36,13 +36,27 @@ object BeangleResolver extends DependencyResolver {
       println("Usage:java org.beangle.repo.artifact.BeangleResolver dependency_file remote_url local_base")
       return
     }
-    var remote = Repo.Remote.AliyunURL
+    var remote = Repo.Remote.CentralURL
     var local: String = null
     if (args.length > 1) remote = args(1)
     if (args.length > 2) local = args(2)
-    val artifacts = resolve(args(0))
+
     val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
     val localRepo = new Repo.Local(local)
+
+    var file = args(0)
+    if (file.contains(":") && !file.contains("/") && !file.contains("\\")) {
+      val war = Artifact(file).packaging("war")
+      new ArtifactDownloader(remoteRepo, localRepo).download(List(war))
+      if (!localRepo.exists(war)) {
+        println("Download error:" + file)
+        return
+      } else {
+        file = localRepo.file(war).getAbsolutePath
+      }
+    }
+
+    val artifacts = resolve(file)
     new ArtifactDownloader(remoteRepo, localRepo).download(artifacts)
     val missing = artifacts filter (!localRepo.exists(_))
     if (!missing.isEmpty) {
