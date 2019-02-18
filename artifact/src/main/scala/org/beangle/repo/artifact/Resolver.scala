@@ -27,9 +27,14 @@ trait DependencyResolver {
   def resolve(resource: URL): Iterable[Artifact]
 }
 
+/**
+ * 可以解析一个war，一个文本文件或者一个war解压后的文件夹，或者一个gav字符串
+ */
 object BeangleResolver extends DependencyResolver {
 
   val DependenciesFile = "META-INF/beangle/container.dependencies"
+
+  val WarDependenciesFile = "/WEB-INF/classes/" + DependenciesFile
 
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
@@ -64,6 +69,9 @@ object BeangleResolver extends DependencyResolver {
     }
   }
 
+  /**
+   * 可以解析一个war，一个文本文件或者一个war解压后的文件夹
+   */
   def resolve(file: String): Iterable[Artifact] = {
     val dependencyFile = new File(file)
     if (!dependencyFile.exists) {
@@ -72,7 +80,7 @@ object BeangleResolver extends DependencyResolver {
     }
     val url: URL =
       if (file.endsWith(".war")) {
-        val nestedUrl = new URL("jar:file:" + dependencyFile.getAbsolutePath + "!/WEB-INF/classes/META-INF/beangle/container.dependencies")
+        val nestedUrl = new URL("jar:file:" + dependencyFile.getAbsolutePath + "!" + WarDependenciesFile)
         try {
           nestedUrl.openConnection.connect()
           nestedUrl
@@ -80,6 +88,14 @@ object BeangleResolver extends DependencyResolver {
           case e: Throwable =>
             println("Resolving skiped,cannot find META-INF/beangle/container.dependencies.")
             return List.empty
+        }
+      } else if (dependencyFile.isDirectory) {
+        val nestedFile = new File(file + WarDependenciesFile)
+        if (nestedFile.isFile) {
+          nestedFile.toURI.toURL
+        } else {
+          println("Resolving skiped,cannot find META-INF/beangle/container.dependencies.")
+          return List.empty
         }
       } else {
         dependencyFile.toURI().toURL()
