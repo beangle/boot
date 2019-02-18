@@ -38,20 +38,20 @@ class ArtifactDownloaderTest extends FunSpec with Matchers {
   val slf4j_1_7_25 = new Artifact("org.slf4j", "slf4j-api", "1.7.25", None, "jar")
 
   val slf4j_1_8_0 = new Artifact("org.slf4j", "slf4j-api", "1.8.0-beta2", None, "jar");
+  val beangle_model_3_6_3 = new Artifact("org.beangle.commons", "beangle-commons-model", "3.6.3", None, "jar")
 
   describe("artifact downloader") {
     it("can download such jars") {
       Dirs.delete(new File("/tmp/repository"))
       val artifacts = Collections.newBuffer[Artifact]
-      artifacts += slf4j_1_7_24
-      artifacts += slf4j_1_7_25
-
-      artifacts += Artifact("org.apache.poi:poi-ooxml-schemas:3.17")
+      artifacts += beangle_model_3_6_3
+      downloader.verbose=false
       downloader.download(artifacts)
+      assert(new File("/tmp/repository/org/beangle/commons/beangle-commons-model/3.6.3/beangle-commons-model-3.6.3.jar").exists)
     }
-
     it("can download with password") {
       Dirs.delete(new File("/tmp/repository"))
+      huaweiloader.verbose=false
       huaweiloader.download(List(slf4j_1_8_0))
     }
   }

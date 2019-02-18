@@ -27,7 +27,7 @@ import scala.collection.JavaConverters.mapAsScalaMap
 import org.beangle.commons.codec.binary.Base64
 import org.beangle.commons.collection.Collections
 import org.beangle.repo.artifact.downloader.{ Downloader, RangeDownloader }
-import org.beangle.repo.artifact.util.Delta
+import org.beangle.repo.artifact.util.{ Delta, FileSize }
 
 /**
  * ArtifactDownloader
@@ -52,6 +52,8 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
 
   private val properties = Collections.newMap[String, String]
 
+  var verbose: Boolean = true
+
   def authorization(username: String, password: String): Unit = {
     properties.put("Authorization", "Basic " + Base64.encode(s"$username:$password".getBytes))
   }
@@ -60,20 +62,18 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     val sha1s = new collection.mutable.ArrayBuffer[Artifact]
     val diffs = new collection.mutable.ArrayBuffer[Diff]
 
-    for (artifact <- artifacts) {
-      if (!local.file(artifact).exists) {
-        if (!artifact.packaging.endsWith("sha1")) {
-          val sha1 = artifact.sha1
-          if (!local.file(sha1).exists()) {
-            sha1s += sha1
-          }
-        }
-        local.lastestBefore(artifact) foreach { lastest =>
-          diffs += Diff(lastest, artifact.version)
+    for (artifact <- artifacts if !local.file(artifact).exists) {
+      if (!artifact.packaging.endsWith("sha1")) {
+        val sha1 = artifact.sha1
+        if (!local.file(sha1).exists()) {
+          sha1s += sha1
         }
       }
+      local.lastestBefore(artifact) foreach { lastest =>
+        diffs += Diff(lastest, artifact.version)
+      }
     }
-    doDownload(sha1s);
+    doDownload(sha1s)
 
     // download diffs and patch them.
     doDownload(diffs)
@@ -81,7 +81,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     for (diff <- diffs) {
       val diffFile = local.file(diff)
       if (diffFile.exists) {
-        println("Patching " + diff)
+        if (verbose) println("Patching " + diff)
         Delta.patch(local.url(diff.older), local.url(diff.newer), local.url(diff))
         newers += diff.newer
       }
@@ -95,7 +95,11 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     doDownload(newers)
     // verify sha1 against newer artifacts.
     for (artifact <- newers) {
-      local.verifySha1(artifact)
+      if (verbose) println("Verifing " + artifact.sha1)
+      if (!local.verifySha1(artifact)) {
+        if (verbose) println("Error sha1 for " + artifact + ",Remove it.")
+        local.remove(artifact)
+      }
     }
     executor.shutdown()
   }
@@ -109,6 +113,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
         executor.execute(new Runnable() {
           def run() {
             val downloader = RangeDownloader(id + "/" + products.size, remote.url(artifact), local.url(artifact))
+            downloader.verbose = verbose
             downloader.addProperties(properties)
             statuses.put(downloader.url, downloader)
             try {
@@ -123,6 +128,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
         idx += 1
       }
     }
+
     sleep(500)
     var i = 0
     val splash = Array('\\', '|', '/', '-')
@@ -134,7 +140,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
       sb.append(splash(i % 4)).append("  ")
       for ((key, value) <- mapAsScalaMap(statuses)) {
         val downloader = value
-        sb.append((downloader.downloaded / 1024 + "KB/" + (downloader.contentLength / 1024) + "KB    "))
+        sb.append((FileSize(downloader.downloaded) + "/" + FileSize(downloader.contentLength) + "    "))
       }
       sb.append(" " * (100 - sb.length))
       i += 1
