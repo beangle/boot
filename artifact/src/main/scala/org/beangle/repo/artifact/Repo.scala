@@ -72,19 +72,16 @@ object Repo {
       new File(url(product))
     }
 
+    def remove(product: Product): Boolean = {
+      new File(url(product)).delete()
+    }
+
     def verifySha1(artifact: Artifact): Boolean = {
       val sha1 = artifact.sha1
       if (exists(artifact) && exists(sha1)) {
-        println("Verifing " + sha1)
         val sha1sum = Delta.sha1(url(artifact))
         val sha1inFile = IOs.readString(new FileInputStream(url(sha1)), Charsets.UTF_8).trim()
-        if (!sha1inFile.contains(sha1sum)) {
-          println("Error sha1 for " + artifact + ",Remove it.")
-          new File(url(artifact)).delete()
-          false
-        } else {
-          true
-        }
+        sha1inFile.contains(sha1sum)
       } else {
         true
       }
@@ -124,7 +121,7 @@ object Repo {
 
   object Remote {
     val CentralURL = "http://central.maven.org/maven2"
-    val AliyunURL = "http://maven.aliyun.com/nexus/content/groups/public"
+    val AliyunURL = "https://maven.aliyun.com/nexus/content/groups/public"
   }
 
   class Remote(val id: String, var base: String, val layout: Layout = Layout.Maven2) extends Repository {
@@ -160,7 +157,7 @@ object Repo {
   }
 
   class Mirror(id: String, base: String, val pattern: String = "*",
-               layout: Layout = Layout.Maven2) extends Remote(id, base, layout) {
+    layout: Layout = Layout.Maven2) extends Remote(id, base, layout) {
     def matches(filePath: String): Boolean = {
       (pattern == "*" || filePath.startsWith(pattern))
     }
