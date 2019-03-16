@@ -18,14 +18,14 @@
  */
 package org.beangle.repo.proxy.web.handler
 
-import org.beangle.commons.lang.annotation.spi
-import org.beangle.webmvc.api.action.ActionSupport
-import org.beangle.webmvc.execution.Handler
-import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
-import javax.servlet.http.HttpServletResponse.{ SC_NOT_FOUND, SC_OK }
+import java.io.File
+
 import org.beangle.commons.web.util.RequestUtils
 import org.beangle.repo.proxy.service.RepoService
-import org.beangle.repo.artifact.Repo
+import org.beangle.webmvc.execution.Handler
+
+import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
+import javax.servlet.http.HttpServletResponse.SC_OK
 
 /**
  * @author chaostone
@@ -38,22 +38,32 @@ class HeadHandler extends Handler {
     val local = repos.local
     val localFile = local.file(filePath)
     if (localFile.exists) {
-      response.setContentLengthLong(localFile.length)
-      response.setDateHeader("Last-Modified", localFile.lastModified)
-      response.setHeader("Accept-Ranges", "bytes")
-      response.setStatus(SC_OK)
+      outhead(localFile, response)
     } else {
       if (filePath.endsWith(".diff")) {
         response.setStatus(HttpServletResponse.SC_NOT_FOUND)
       } else {
         repos.find(filePath) match {
           case Some(repo) =>
-            response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY)
-            response.setHeader("Location", repo.base + filePath)
+            if (repos.cacheable) {
+              outhead(repos.download(filePath, repo), response)
+            } else {
+              response.sendRedirect(repo.base + filePath)
+            }
           case None => response.setStatus(HttpServletResponse.SC_NOT_FOUND)
         }
       }
     }
   }
 
+  private def outhead(file: File, response: HttpServletResponse): Unit = {
+    if (null != file && file.exists) {
+      response.setContentLengthLong(file.length)
+      response.setDateHeader("Last-Modified", file.lastModified)
+      response.setHeader("Accept-Ranges", "bytes")
+      response.setStatus(SC_OK)
+    } else {
+      response.setStatus(HttpServletResponse.SC_NOT_FOUND)
+    }
+  }
 }

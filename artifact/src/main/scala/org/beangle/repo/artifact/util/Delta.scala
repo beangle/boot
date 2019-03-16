@@ -32,7 +32,7 @@ object Delta {
   }
 
   def sha1(fileLoc: String): String = {
-    val rs = exec("sha1sum", fileLoc)
+    val rs = exec("sha1sum", "-z", fileLoc)
     //sha1出来的内容往往是 带有文件名,这是过滤摘要后面的文件名
     val spaceIdx = rs.indexOf(' ')
     if (-1 == spaceIdx) rs.trim

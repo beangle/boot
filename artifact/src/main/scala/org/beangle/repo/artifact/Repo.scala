@@ -24,6 +24,7 @@ import java.net.{ HttpURLConnection, URL }
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.IOs
 import org.beangle.commons.lang.Charsets
+import org.beangle.commons.net.http.HttpUtils
 import org.beangle.repo.artifact.util.Delta
 
 object Repo {
@@ -132,9 +133,7 @@ object Repo {
 
     override def exists(filePath: String): Boolean = {
       try {
-        val hc = new URL(base + filePath).openConnection().asInstanceOf[HttpURLConnection]
-        hc.setRequestMethod("HEAD")
-        hc.setDoOutput(true)
+        val hc = HttpUtils.followRedirect(new URL(base + filePath).openConnection(), "HEAD")
         hc.getResponseCode == HttpURLConnection.HTTP_OK
       } catch {
         case e: Throwable => false
@@ -157,7 +156,7 @@ object Repo {
   }
 
   class Mirror(id: String, base: String, val pattern: String = "*",
-    layout: Layout = Layout.Maven2) extends Remote(id, base, layout) {
+               layout: Layout = Layout.Maven2) extends Remote(id, base, layout) {
     def matches(filePath: String): Boolean = {
       (pattern == "*" || filePath.startsWith(pattern))
     }
