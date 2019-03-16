@@ -20,11 +20,11 @@ package org.beangle.repo.artifact.downloader
 
 import java.io.{ File, FileOutputStream, IOException, InputStream, OutputStream }
 import java.net.{ URL, URLConnection }
-import java.net.HttpURLConnection.{ HTTP_FORBIDDEN, HTTP_NOT_FOUND, HTTP_OK, HTTP_UNAUTHORIZED, HTTP_MOVED_PERM, HTTP_MOVED_TEMP }
 import java.net.HttpURLConnection
-
+import java.net.HttpURLConnection.HTTP_OK
 import org.beangle.repo.artifact.util.FileSize
 import org.beangle.commons.io.IOs
+import org.beangle.commons.net.http.HttpUtils
 
 abstract class AbstractDownloader(val name: String, val url: URL, protected val location: File)
   extends Downloader {
@@ -50,39 +50,14 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
 
   protected def downloading(): Unit
 
-  protected def httpCodeString(httpCode: Int): String = {
-    httpCode match {
-      case HTTP_OK           => "OK"
-      case HTTP_FORBIDDEN    => "Access denied!"
-      case HTTP_NOT_FOUND    => "Not Found"
-      case HTTP_UNAUTHORIZED => "Access denied"
-      case code: Any         => String.valueOf(code)
-    }
-  }
-
   protected def access(): ResourceStatus = {
-    val hc = followRedirect(this.url.openConnection(), "HEAD")
+    val hc = HttpUtils.followRedirect(this.url.openConnection(), "HEAD")
     val rc = hc.asInstanceOf[HttpURLConnection].getResponseCode
     rc match {
       case HTTP_OK =>
         val supportRange = ("bytes" == hc.getHeaderField("Accept-Ranges"))
         ResourceStatus(rc, hc.getURL, hc.getHeaderFieldLong("Content-Length", 0), hc.getLastModified, supportRange)
       case _ => ResourceStatus(rc, hc.getURL, -1, -1, false)
-    }
-  }
-
-  protected def followRedirect(c: URLConnection, method: String): URLConnection = {
-    val conn = c.asInstanceOf[HttpURLConnection]
-    conn.setRequestMethod(method)
-    conn.setInstanceFollowRedirects(false)
-    val rc = conn.getResponseCode
-    rc match {
-      case HTTP_OK => conn
-      case HTTP_MOVED_TEMP | HTTP_MOVED_PERM =>
-        val newLoc = conn.getHeaderField("location")
-        if (verbose) println("Redirect to " + newLoc)
-        followRedirect(new URL(newLoc).openConnection, method)
-      case _ => conn
     }
   }
 
@@ -100,7 +75,7 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
   }
 
   protected def defaultDownloading(c: URLConnection) {
-    val conn = followRedirect(c, "GET").asInstanceOf[HttpURLConnection]
+    val conn = HttpUtils.followRedirect(c, "GET")
     var input: InputStream = null
     var output: OutputStream = null
     try {
@@ -116,6 +91,10 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
         status.count.addAndGet(n)
         n = input.read(buffer)
       }
+      //先关闭文件读写，再改名
+      IOs.close(input, output)
+      input = null
+      output = null
       file.renameTo(location)
       if (this.status.total < 0) {
         this.status.total = this.status.count.get
