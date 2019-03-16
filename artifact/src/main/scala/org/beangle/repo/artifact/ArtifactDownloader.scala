@@ -110,12 +110,13 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     for (artifact <- products) {
       if (!local.file(artifact).exists()) {
         val id = idx
+        val downloader = RangeDownloader(id + "/" + products.size, remote.url(artifact), local.url(artifact))
+        downloader.verbose = verbose
+        downloader.addProperties(properties)
+        statuses.put(downloader.url, downloader)
+
         executor.execute(new Runnable() {
           def run() {
-            val downloader = RangeDownloader(id + "/" + products.size, remote.url(artifact), local.url(artifact))
-            downloader.verbose = verbose
-            downloader.addProperties(properties)
-            statuses.put(downloader.url, downloader)
             try {
               downloader.start()
             } catch {
@@ -128,8 +129,6 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
         idx += 1
       }
     }
-
-    sleep(500)
     var i = 0
     val splash = Array('\\', '|', '/', '-')
     val count = statuses.size
