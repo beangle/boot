@@ -25,13 +25,16 @@ import org.beangle.commons.io.Dirs
 import org.junit.runner.RunWith
 import org.scalatest.{ FunSpec, Matchers }
 import org.scalatest.junit.JUnitRunner
+import org.beangle.commons.lang.SystemInfo
 
 @RunWith(classOf[JUnitRunner])
 class ArtifactDownloaderTest extends FunSpec with Matchers {
 
-  val downloader = ArtifactDownloader(Repo.Remote.AliyunURL, "/tmp/repository")
+  val tempLocalRepo = new File(SystemInfo.tmpDir + "/.m2/repository")
+  tempLocalRepo.mkdirs();
+  val downloader = ArtifactDownloader(Repo.Remote.AliyunURL, tempLocalRepo.getAbsolutePath)
 
-  val huaweiloader = ArtifactDownloader("https://mirrors.huaweicloud.com/repository/maven/", "/tmp/repository")
+  val huaweiloader = ArtifactDownloader("https://mirrors.huaweicloud.com/repository/maven/", tempLocalRepo.getAbsolutePath)
   huaweiloader.authorization("anonymous", "devcloud")
 
   val slf4j_1_7_24 = new Artifact("org.slf4j", "slf4j-api", "1.7.24", None, "jar")
@@ -42,16 +45,17 @@ class ArtifactDownloaderTest extends FunSpec with Matchers {
 
   describe("artifact downloader") {
     it("can download such jars") {
-      Dirs.delete(new File("/tmp/repository"))
+      Dirs.delete(tempLocalRepo)
       val artifacts = Collections.newBuffer[Artifact]
       artifacts += beangle_model_3_6_3
-      downloader.verbose=false
+      downloader.verbose = true
       downloader.download(artifacts)
-      assert(new File("/tmp/repository/org/beangle/commons/beangle-commons-model/3.6.3/beangle-commons-model-3.6.3.jar").exists)
+      assert(new File(tempLocalRepo.getAbsolutePath +
+        "/org/beangle/commons/beangle-commons-model/3.6.3/beangle-commons-model-3.6.3.jar").exists)
     }
     it("can download with password") {
-      Dirs.delete(new File("/tmp/repository"))
-      huaweiloader.verbose=false
+      Dirs.delete(tempLocalRepo)
+      huaweiloader.verbose = false
       huaweiloader.download(List(slf4j_1_8_0))
     }
   }

@@ -21,6 +21,8 @@ package org.beangle.repo.artifact
 import org.junit.runner.RunWith
 import org.scalatest.{ FunSpec, Matchers }
 import org.scalatest.junit.JUnitRunner
+import java.io.File
+import org.beangle.commons.lang.SystemInfo
 
 @RunWith(classOf[JUnitRunner])
 class ArtifactTest extends FunSpec with Matchers {
@@ -31,7 +33,9 @@ class ArtifactTest extends FunSpec with Matchers {
   val jsonlib2 = Artifact("net.sf.json-lib:json-lib:jar:2.4")
   val jsonlib3 = Artifact("net.sf.json-lib:json-lib:jdk15:2.4")
 
-  val local = new Repo.Local("/home/chaostone/.m2/repository")
+  val tempLocalRepo = new File(SystemInfo.tmpDir + "/.m2/repository")
+  tempLocalRepo.mkdirs();
+  val local = new Repo.Local(tempLocalRepo.getAbsolutePath)
 
   describe("artifact ") {
     it("to string") {
@@ -54,7 +58,8 @@ class ArtifactTest extends FunSpec with Matchers {
 
     it("to path") {
       val loc = local.url(artifact)
-      loc should be equals ("/home/chaostone/.m2/repository/org/beangle/commons/beangle-commons-core_2.12"
+      println(loc)
+      loc should be equals (tempLocalRepo.getAbsolutePath + "/org/beangle/commons/beangle-commons-core_2.12"
         + "/4.6.2/beangle-commons-core_2.12-4.6.2-sources.jar")
     }
     it("diff path") {
