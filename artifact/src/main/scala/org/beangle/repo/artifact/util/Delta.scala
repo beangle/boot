@@ -20,6 +20,7 @@ package org.beangle.repo.artifact.util
 
 import java.io.{ BufferedReader, File, InputStreamReader }
 import org.beangle.commons.file.diff.Bsdiff
+import org.beangle.commons.lang.Strings
 
 object Delta {
 
@@ -32,7 +33,9 @@ object Delta {
   }
 
   def sha1(fileLoc: String): String = {
-    val rs = exec("sha1sum", "-z", fileLoc)
+    //windows下执行的有反斜线
+    var rs = exec("sha1sum", fileLoc)
+    rs = Strings.replace(rs, "\\", "")
     //sha1出来的内容往往是 带有文件名,这是过滤摘要后面的文件名
     val spaceIdx = rs.indexOf(' ')
     if (-1 == spaceIdx) rs.trim
