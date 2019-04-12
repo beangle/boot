@@ -20,7 +20,7 @@ package org.beangle.repo.artifact
 
 import java.io.IOException
 import java.net.URL
-import java.util.concurrent.{ ConcurrentHashMap, Executors }
+import java.util.concurrent.{ ConcurrentHashMap, Executors, ExecutorService }
 
 import scala.collection.JavaConverters.mapAsScalaMap
 
@@ -46,10 +46,6 @@ object ArtifactDownloader {
 
 class ArtifactDownloader(private val remote: Repo.Remote, private val local: Repo.Local) {
 
-  private val statuses = new ConcurrentHashMap[URL, Downloader]()
-
-  private val executor = Executors.newFixedThreadPool(5)
-
   private val properties = Collections.newMap[String, String]
 
   var verbose: Boolean = true
@@ -59,6 +55,9 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
   }
 
   def download(artifacts: Iterable[Artifact]): Unit = {
+    val statuses = new ConcurrentHashMap[URL, Downloader]
+    val executor = Executors.newFixedThreadPool(5)
+
     val sha1s = new collection.mutable.ArrayBuffer[Artifact]
     val diffs = new collection.mutable.ArrayBuffer[Diff]
 
@@ -73,10 +72,10 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
         diffs += Diff(lastest, artifact.version)
       }
     }
-    doDownload(sha1s)
+    doDownload(sha1s, executor, statuses)
 
     // download diffs and patch them.
-    doDownload(diffs)
+    doDownload(diffs, executor, statuses)
     val newers = new collection.mutable.ArrayBuffer[Artifact]
     for (diff <- diffs) {
       val diffFile = local.file(diff)
@@ -92,7 +91,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
         newers += artifact
       }
     }
-    doDownload(newers)
+    doDownload(newers, executor, statuses)
     // verify sha1 against newer artifacts.
     for (artifact <- newers) {
       if (verbose) println("Verifing " + artifact.sha1)
@@ -104,7 +103,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     executor.shutdown()
   }
 
-  private def doDownload(products: Iterable[Product]): Unit = {
+  private def doDownload(products: Iterable[Product], executor: ExecutorService, statuses: ConcurrentHashMap[URL, Downloader]): Unit = {
     if (products.size <= 0) return
     var idx = 1
     for (artifact <- products) {
