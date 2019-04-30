@@ -49,9 +49,12 @@ class ArtifactDownloaderTest extends FunSpec with Matchers {
       val artifacts = Collections.newBuffer[Artifact]
       artifacts += beangle_model_3_6_3
       downloader.verbose = true
+
+      println("Download int :" + tempLocalRepo)
       downloader.download(artifacts)
       assert(new File(tempLocalRepo.getAbsolutePath +
         "/org/beangle/commons/beangle-commons-model/3.6.3/beangle-commons-model-3.6.3.jar").exists)
+      downloader.download(List(Artifact("org.beangle.commons:beangle-commons-model:3.6.4")))
     }
     it("can download with password") {
       Dirs.delete(tempLocalRepo)
