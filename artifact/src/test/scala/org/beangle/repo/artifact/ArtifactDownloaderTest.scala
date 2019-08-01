@@ -22,16 +22,17 @@ import java.io.File
 
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.Dirs
-import org.junit.runner.RunWith
-import org.scalatest.{ FunSpec, Matchers }
-import org.scalatest.junit.JUnitRunner
 import org.beangle.commons.lang.SystemInfo
+import org.junit.runner.RunWith
+import org.scalatest.Matchers
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatestplus.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ArtifactDownloaderTest extends FunSpec with Matchers {
+class ArtifactDownloaderTest extends AnyFunSpec with Matchers {
 
   val tempLocalRepo = new File(SystemInfo.tmpDir + "/.m2/repository")
-  tempLocalRepo.mkdirs();
+  tempLocalRepo.mkdirs()
   val downloader = ArtifactDownloader(Repo.Remote.AliyunURL, tempLocalRepo.getAbsolutePath)
 
   val huaweiloader = ArtifactDownloader("https://mirrors.huaweicloud.com/repository/maven/", tempLocalRepo.getAbsolutePath)
@@ -40,7 +41,7 @@ class ArtifactDownloaderTest extends FunSpec with Matchers {
   val slf4j_1_7_24 = new Artifact("org.slf4j", "slf4j-api", "1.7.24", None, "jar")
   val slf4j_1_7_25 = new Artifact("org.slf4j", "slf4j-api", "1.7.25", None, "jar")
 
-  val slf4j_1_8_0 = new Artifact("org.slf4j", "slf4j-api", "1.8.0-beta2", None, "jar");
+  val slf4j_1_8_0 = new Artifact("org.slf4j", "slf4j-api", "1.8.0-beta2", None, "jar")
   val beangle_model_3_6_3 = new Artifact("org.beangle.commons", "beangle-commons-model", "3.6.3", None, "jar")
 
   describe("artifact downloader") {

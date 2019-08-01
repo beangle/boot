@@ -18,11 +18,9 @@
  */
 package org.beangle.repo.proxy.web
 
-import org.beangle.webmvc.dispatch.{ Route, RouteProvider }
 import org.beangle.commons.net.http.HttpMethods._
-import org.beangle.repo.proxy.web.handler.GetHandler
-import org.beangle.repo.proxy.web.handler.HeadHandler
-import org.beangle.repo.proxy.web.handler.AboutHandler
+import org.beangle.repo.proxy.web.handler.{AboutHandler, GetHandler, HeadHandler}
+import org.beangle.webmvc.dispatch.{Route, RouteProvider}
 
 /**
  * @author chaostone

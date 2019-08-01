@@ -18,27 +18,27 @@
  */
 package org.beangle.repo.artifact.downloader
 
-import java.io.{ File, FileOutputStream, IOException, InputStream, OutputStream }
-import java.net.{ URL, URLConnection }
-import java.net.HttpURLConnection
+import java.io.{File, FileOutputStream, InputStream, OutputStream}
 import java.net.HttpURLConnection.HTTP_OK
-import org.beangle.repo.artifact.util.FileSize
+import java.net.{HttpURLConnection, URL, URLConnection}
+
 import org.beangle.commons.io.IOs
 import org.beangle.commons.net.http.HttpUtils
+import org.beangle.repo.artifact.util.FileSize
 
 abstract class AbstractDownloader(val name: String, val url: URL, protected val location: File)
   extends Downloader {
 
-  protected var status: Downloader.Status = null
+  protected var status: Downloader.Status = _
   protected var startAt: Long = _
   var verbose: Boolean = true
 
   def contentLength: Long = {
-    if ((null == status)) 0 else status.total
+    if (null == status) 0 else status.total
   }
 
   def downloaded: Long = {
-    if ((null == status)) 0 else status.count.get
+    if (null == status) 0 else status.count.get
   }
 
   def start(): Unit = {
@@ -55,13 +55,13 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
     val rc = hc.asInstanceOf[HttpURLConnection].getResponseCode
     rc match {
       case HTTP_OK =>
-        val supportRange = ("bytes" == hc.getHeaderField("Accept-Ranges"))
+        val supportRange = "bytes" == hc.getHeaderField("Accept-Ranges")
         ResourceStatus(rc, hc.getURL, hc.getHeaderFieldLong("Content-Length", 0), hc.getLastModified, supportRange)
-      case _ => ResourceStatus(rc, hc.getURL, -1, -1, false)
+      case _ => ResourceStatus(rc, hc.getURL, -1, -1, supportRange = false)
     }
   }
 
-  protected def finish(url: URL, elaps: Long) {
+  protected def finish(url: URL, elaps: Long): Unit = {
     if (verbose) {
       val printurl = "\r" + name + " " + url + " "
       if (status.total < 1024) {
@@ -74,12 +74,12 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
     }
   }
 
-  protected def defaultDownloading(c: URLConnection) {
+  protected def defaultDownloading(c: URLConnection): Unit = {
     val conn = HttpUtils.followRedirect(c, "GET")
     var input: InputStream = null
     var output: OutputStream = null
     try {
-      val file = new File(location + ".part")
+      val file = new File(location.toString + ".part")
       file.delete()
       val buffer = Array.ofDim[Byte](1024 * 4)
       this.status = new Downloader.Status(conn.getContentLengthLong)
@@ -106,4 +106,5 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
   }
 
   case class ResourceStatus(status: Int, target: URL, length: Long, lastModified: Long, supportRange: Boolean)
+
 }

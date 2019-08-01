@@ -20,14 +20,14 @@ package org.beangle.repo.artifact
 
 import java.io.IOException
 import java.net.URL
-import java.util.concurrent.{ ConcurrentHashMap, Executors, ExecutorService }
-
-import scala.collection.JavaConverters.mapAsScalaMap
+import java.util.concurrent.{ConcurrentHashMap, ExecutorService, Executors}
 
 import org.beangle.commons.codec.binary.Base64
 import org.beangle.commons.collection.Collections
-import org.beangle.repo.artifact.downloader.{ Downloader, RangeDownloader }
-import org.beangle.repo.artifact.util.{ Delta, FileSize }
+import org.beangle.repo.artifact.downloader.{Downloader, RangeDownloader}
+import org.beangle.repo.artifact.util.{Delta, FileSize}
+
+import scala.jdk.javaapi.CollectionConverters.asScala
 
 /**
  * ArtifactDownloader
@@ -109,20 +109,18 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     for (artifact <- products) {
       if (!local.file(artifact).exists()) {
         val id = idx
-        val downloader = RangeDownloader(id + "/" + products.size, remote.url(artifact), local.url(artifact))
+        val downloader = RangeDownloader(s"$id/${products.size}", remote.url(artifact), local.url(artifact))
         downloader.verbose = verbose
         downloader.addProperties(properties)
         statuses.put(downloader.url, downloader)
 
-        executor.execute(new Runnable() {
-          def run() {
-            try {
-              downloader.start()
-            } catch {
-              case e: IOException => e.printStackTrace()
-            } finally {
-              statuses.remove(downloader.url)
-            }
+        executor.execute(() => {
+          try {
+            downloader.start()
+          } catch {
+            case e: IOException => e.printStackTrace()
+          } finally {
+            statuses.remove(downloader.url)
           }
         })
         idx += 1
@@ -136,9 +134,9 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
       print("\r")
       val sb = new StringBuilder()
       sb.append(splash(i % 4)).append("  ")
-      for ((key, value) <- mapAsScalaMap(statuses)) {
+      for ((_, value) <- asScala(statuses)) {
         val downloader = value
-        sb.append((FileSize(downloader.downloaded) + "/" + FileSize(downloader.contentLength) + "    "))
+        sb.append(FileSize(downloader.downloaded) + "/" + FileSize(downloader.contentLength) + "    ")
       }
       sb.append(" " * (100 - sb.length))
       i += 1
@@ -147,14 +145,13 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     if (count > 0) print("\n")
   }
 
-  private def sleep(millsecond: Int) {
+  private def sleep(millsecond: Int): Unit = {
     try {
       Thread.sleep(500)
     } catch {
-      case e: InterruptedException => {
+      case e: InterruptedException =>
         e.printStackTrace()
         throw new RuntimeException(e)
-      }
     }
   }
 }

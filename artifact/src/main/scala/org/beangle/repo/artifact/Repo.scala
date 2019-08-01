@@ -18,8 +18,8 @@
  */
 package org.beangle.repo.artifact
 
-import java.io.{ File, FileInputStream }
-import java.net.{ HttpURLConnection, URL }
+import java.io.{File, FileInputStream}
+import java.net.{HttpURLConnection, URL}
 
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.IOs
@@ -36,9 +36,12 @@ object Repo {
   def remote(base: String): Remote = {
     new Remote(base, base, Layout.Maven2)
   }
+
   abstract class Repository {
     def id: String
+
     def base: String
+
     def layout: Layout
 
     def exists(filePath: String): Boolean
@@ -50,15 +53,17 @@ object Repo {
     def url(p: Product): String = {
       p match {
         case a: Artifact => base + layout.path(a)
-        case d: Diff     => base + layout.path(d)
+        case d: Diff => base + layout.path(d)
       }
     }
   }
 
   class Local(ibase: String = null, val layout: Layout = Layout.Maven2) extends Repository {
     def id = "local"
+
     def pattern = "*"
-    val base = findLocalBase(layout, ibase)
+
+    val base: String = findLocalBase(layout, ibase)
     new File(this.base).mkdirs()
 
     override def exists(path: String): Boolean = {
@@ -89,15 +94,15 @@ object Repo {
     }
 
     def lastestBefore(artifact: Artifact): Option[Artifact] = {
-      lastest(artifact, true)
+      lastest(artifact, isLessThen = true)
     }
 
     def lastest(artifact: Artifact): Option[Artifact] = {
-      lastest(artifact, false)
+      lastest(artifact, isLessThen = false)
     }
 
     def lastest(artifact: Artifact, isLessThen: Boolean): Option[Artifact] = {
-      val parent = new File(url(artifact)).getParentFile().getParentFile()
+      val parent = new File(url(artifact)).getParentFile.getParentFile
       if (parent.exists()) {
         val siblings = parent.list().toList
         val versions = Collections.newBuffer[String]
@@ -127,6 +132,7 @@ object Repo {
 
   class Remote(val id: String, var base: String, val layout: Layout = Layout.Maven2) extends Repository {
     this.base = normalizeUrl(base)
+
     def this() {
       this("central", Remote.CentralURL, Layout.Maven2)
     }
@@ -136,7 +142,7 @@ object Repo {
         val hc = HttpUtils.followRedirect(new URL(base + filePath).openConnection(), "HEAD")
         hc.getResponseCode == HttpURLConnection.HTTP_OK
       } catch {
-        case e: Throwable => false
+        case _: Throwable => false
       }
     }
 
@@ -147,9 +153,10 @@ object Repo {
     override def equals(any: Any): Boolean = {
       any match {
         case r: Remote => r.id.equals(this.id)
-        case _         => false
+        case _ => false
       }
     }
+
     override def toString: String = {
       id + ":" + base
     }
@@ -158,8 +165,9 @@ object Repo {
   class Mirror(id: String, base: String, val pattern: String = "*",
                layout: Layout = Layout.Maven2) extends Remote(id, base, layout) {
     def matches(filePath: String): Boolean = {
-      (pattern == "*" || filePath.startsWith(pattern))
+      pattern == "*" || filePath.startsWith(pattern)
     }
+
     override def exists(filePath: String): Boolean = {
       if (matches(filePath)) super.exists(filePath) else false
     }

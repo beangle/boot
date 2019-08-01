@@ -19,13 +19,13 @@
 package org.beangle.repo.proxy.service
 
 import org.beangle.commons.collection.Collections
-import org.beangle.commons.lang.{ Strings, SystemInfo }
-import org.beangle.repo.artifact.{ MirrorRepos, Repo, Repos }
+import org.beangle.commons.lang.{Strings, SystemInfo}
+import org.beangle.repo.artifact.{MirrorRepos, Repo, Repos}
 
 object RepoService {
   var repos: Repos = _
 
-  private def init() {
+  private def init(): Unit = {
     val mirrors = Collections.newBuffer[Repo.Mirror]
     var cacheable = false
 
@@ -48,8 +48,8 @@ object RepoService {
         val remote =
           remoteName match {
             case "central" => Repo.Remote.CentralURL
-            case "aliyun"  => Repo.Remote.AliyunURL
-            case _         => name
+            case "aliyun" => Repo.Remote.AliyunURL
+            case _ => name
           }
         mirrors += new Repo.Mirror(remote, remote, pattern)
       }

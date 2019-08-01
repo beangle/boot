@@ -18,12 +18,11 @@
  */
 package org.beangle.repo.artifact.downloader
 
-import java.io.{ File, FileOutputStream, InputStream, OutputStream }
+import java.io.File
 import java.net.URL
-import org.beangle.commons.io.IOs
 
 class DefaultDownloader(id: String, url: URL, location: File) extends AbstractDownloader(id, url, location) {
-  protected override def downloading() {
+  protected override def downloading(): Unit = {
     println("Downloading " + url)
     super.defaultDownloading(url.openConnection())
   }

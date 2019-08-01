@@ -18,9 +18,9 @@
  */
 package org.beangle.repo.artifact.downloader
 
-import java.io.{ File, FileOutputStream }
-import java.net.{ HttpURLConnection, URL }
-import java.util.concurrent.{ Callable, ExecutorService, Executors }
+import java.io.{File, FileOutputStream}
+import java.net.{HttpURLConnection, URL}
+import java.util.concurrent.{Callable, ExecutorService, Executors}
 
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.net.http.HttpUtils
@@ -53,7 +53,7 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
     this
   }
 
-  protected override def downloading() {
+  protected override def downloading(): Unit = {
     val urlStatus = access()
     if (urlStatus.length < 0) {
       println("\r" + HttpUtils.toString(urlStatus.status) + " " + url)
@@ -69,7 +69,7 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
     }
     this.status = new Downloader.Status(urlStatus.length)
     if (this.status.total > java.lang.Integer.MAX_VALUE) {
-      throw new RuntimeException(s"Cannot download ${url} with size ${this.status.total}")
+      throw new RuntimeException(s"Cannot download $url with size ${this.status.total}")
     }
 
     val total = this.status.total.toInt
@@ -79,31 +79,29 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
     val tasks = new java.util.ArrayList[Callable[Integer]]
     while (begin < this.status.total) {
       val start = begin
-      val end = if (((start + step - 1) >= total)) (total - 1) else (start + step - 1)
-      tasks.add(new Callable[Integer]() {
-        def call(): Integer = {
-          val connection = urlStatus.target.openConnection.asInstanceOf[HttpURLConnection]
-          connection.setRequestProperty("RANGE", "bytes=" + start + "-" + end)
-          properties foreach (e => connection.setRequestProperty(e._1, e._2))
-          val input = connection.getInputStream
-          if (lastModified == 0) lastModified = connection.getLastModified
-          val buffer = Array.ofDim[Byte](1024)
-          var n = input.read(buffer)
-          var next = start
-          var tooMore = false
-          while (-1 != n && !tooMore) {
-            if (next + n - 1 > end) {
-              n = end - next + 1
-              tooMore = true
-            }
-            System.arraycopy(buffer, 0, totalbuffer, next, n)
-            status.count.addAndGet(n)
-            next += n
-            n = input.read(buffer)
+      val end = if (start + step - 1 >= total) total - 1 else start + step - 1
+      tasks.add(() => {
+        val connection = urlStatus.target.openConnection.asInstanceOf[HttpURLConnection]
+        connection.setRequestProperty("RANGE", "bytes=" + start + "-" + end)
+        properties foreach (e => connection.setRequestProperty(e._1, e._2))
+        val input = connection.getInputStream
+        if (lastModified == 0) lastModified = connection.getLastModified
+        val buffer = Array.ofDim[Byte](1024)
+        var n = input.read(buffer)
+        var next = start
+        var tooMore = false
+        while (-1 != n && !tooMore) {
+          if (next + n - 1 > end) {
+            n = end - next + 1
+            tooMore = true
           }
-          IOs.close(input)
-          end
+          System.arraycopy(buffer, 0, totalbuffer, next, n)
+          status.count.addAndGet(n)
+          next += n
+          n = input.read(buffer)
         }
+        IOs.close(input)
+        end
       })
       begin += step
     }

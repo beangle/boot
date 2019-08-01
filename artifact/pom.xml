@@ -7,7 +7,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.beangle.repo</groupId>
-  <artifactId>beangle-repo-artifact_2.12</artifactId>
+  <artifactId>beangle-repo-artifact_2.13</artifactId>
   <packaging>jar</packaging>
   <name>Beangle Repo Artifact</name>
 

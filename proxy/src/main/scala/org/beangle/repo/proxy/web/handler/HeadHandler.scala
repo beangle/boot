@@ -20,12 +20,11 @@ package org.beangle.repo.proxy.web.handler
 
 import java.io.File
 
+import javax.servlet.http.HttpServletResponse.SC_OK
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.beangle.commons.web.util.RequestUtils
 import org.beangle.repo.proxy.service.RepoService
 import org.beangle.webmvc.execution.Handler
-
-import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
-import javax.servlet.http.HttpServletResponse.SC_OK
 
 /**
  * @author chaostone

@@ -34,7 +34,7 @@ object Layout {
     def path(d: Diff): String = {
       "/" + d.groupId.replace('.', '/') + "/" + d.artifactId + "/" + d.newVersion +
         "/" + d.artifactId + "-" + d.oldVersion + "_" + d.newVersion +
-        (if (d.classifier.isEmpty) "" else ("-" + d.classifier.get)) + "." + d.packaging;
+        (if (d.classifier.isEmpty) "" else "-" + d.classifier.get) + "." + d.packaging;
     }
   }
 
@@ -46,7 +46,7 @@ object Layout {
     def path(d: Diff): String = {
       "/" + d.groupId + "/" + d.artifactId + "/diffs/" +
         d.artifactId + "-" + d.oldVersion + "_" + d.newVersion +
-        "." + d.packaging;
+        "." + d.packaging
     }
   }
 }

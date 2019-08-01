@@ -21,7 +21,8 @@ package org.beangle.repo.artifact
 trait Product
 
 object Artifact {
-  val packagings = Set("jar", "war", "pom", "zip", "ear", "rar", "ejb", "ejb3", "tar", "tar.gz")
+  val packagings: Set[String] = Set("jar", "war", "pom", "zip", "ear", "rar", "ejb", "ejb3", "tar", "tar.gz")
+
   /**
    * Resolve gav string
    * net.sf.json-lib:json-lib:jar:jdk15:2.4
@@ -51,8 +52,8 @@ object Artifact {
   }
 }
 
-case class Artifact(val groupId: String, val artifactId: String,
-                    val version: String, val classifier: Option[String] = None, val packaging: String = "jar")
+case class Artifact(groupId: String, artifactId: String,
+                    version: String, classifier: Option[String] = None, packaging: String = "jar")
   extends Product {
 
   def packaging(newPackaing: String): Artifact = {
@@ -68,12 +69,12 @@ case class Artifact(val groupId: String, val artifactId: String,
   }
 
   override def toString: String = {
-    groupId + ":" + artifactId + ":" + version + (if (classifier.isEmpty) "" else (":" + classifier.get)) + ":" +
+    groupId + ":" + artifactId + ":" + version + (if (classifier.isEmpty) "" else ":" + classifier.get) + ":" +
       packaging
   }
 
   def forVersion(newVersion: String): Artifact = {
-    return new Artifact(groupId, artifactId, newVersion, classifier, packaging);
+    new Artifact(groupId, artifactId, newVersion, classifier, packaging)
   }
 
   override def hashCode: Int = {
@@ -98,8 +99,8 @@ object Diff {
   }
 }
 
-case class Diff(val groupId: String, val artifactId: String,
-                oldVersion: String, newVersion: String, val classifier: Option[String], packaging: String = "jar")
+case class Diff(groupId: String, artifactId: String,
+                oldVersion: String, newVersion: String, classifier: Option[String], packaging: String = "jar")
   extends Product {
 
   def older: Artifact = {
@@ -109,8 +110,9 @@ case class Diff(val groupId: String, val artifactId: String,
   def newer: Artifact = {
     new Artifact(groupId, artifactId, newVersion, classifier, packaging.replace(".diff", ""))
   }
+
   override def toString: String = {
-    groupId + ":" + artifactId + ":" + oldVersion + "_" + newVersion + (if (classifier.isEmpty) "" else (":" + classifier.get)) + ":" +
+    groupId + ":" + artifactId + ":" + oldVersion + "_" + newVersion + (if (classifier.isEmpty) "" else ":" + classifier.get) + ":" +
       packaging
   }
 }
