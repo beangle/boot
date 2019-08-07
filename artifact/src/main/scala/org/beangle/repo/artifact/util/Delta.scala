@@ -18,7 +18,8 @@
  */
 package org.beangle.repo.artifact.util
 
-import java.io.{ BufferedReader, File, InputStreamReader }
+import java.io.{BufferedReader, File, InputStreamReader}
+
 import org.beangle.commons.file.diff.Bsdiff
 import org.beangle.commons.lang.Strings
 
@@ -48,11 +49,11 @@ object Delta {
       arguments += command
       arguments ++= args
 
-      val pb = new ProcessBuilder(arguments: _*)
+      val pb = new ProcessBuilder(arguments.toSeq: _*)
       pb.redirectErrorStream(true)
       val pro = pb.start()
       pro.waitFor()
-      val reader = new BufferedReader(new InputStreamReader(pro.getInputStream()))
+      val reader = new BufferedReader(new InputStreamReader(pro.getInputStream))
       val sb = new StringBuilder()
       var line = reader.readLine()
       while (line != null) {

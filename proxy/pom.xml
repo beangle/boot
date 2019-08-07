@@ -3,11 +3,11 @@
   <parent>
     <groupId>org.beangle.repo</groupId>
     <artifactId>beangle-repo-parent</artifactId>
-    <version>0.0.11</version>
+    <version>0.0.12</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.beangle.repo</groupId>
-  <artifactId>beangle-repo-proxy_2.12</artifactId>
+  <artifactId>beangle-repo-proxy_2.13</artifactId>
   <packaging>war</packaging>
   <name>Beangle Repo Proxy</name>
 
@@ -23,22 +23,22 @@
   <dependencies>
     <dependency>
       <groupId>org.beangle.commons</groupId>
-      <artifactId>beangle-commons-web_2.12</artifactId>
+      <artifactId>beangle-commons-web_2.13</artifactId>
       <version>${beangle.commons.version}</version>
     </dependency>
     <dependency>
       <groupId>org.beangle.repo</groupId>
-      <artifactId>beangle-repo-artifact_2.12</artifactId>
+      <artifactId>beangle-repo-artifact_2.13</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.beangle.webmvc</groupId>
-      <artifactId>beangle-webmvc-core_2.12</artifactId>
+      <artifactId>beangle-webmvc-core_2.13</artifactId>
       <version>${beangle.mvc.version}</version>
     </dependency>
     <dependency>
       <groupId>org.beangle.cdi</groupId>
-      <artifactId>beangle-cdi-spring_2.12</artifactId>
+      <artifactId>beangle-cdi-spring_2.13</artifactId>
       <version>${beangle.cdi.version}</version>
     </dependency>
     <dependency>
@@ -78,7 +78,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-war-plugin</artifactId>
-        <version>2.4</version>
+        <version>3.2.2</version>
         <configuration>
           <packagingExcludes>
             %regex[WEB-INF/lib/.*[^T].jar]

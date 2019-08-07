@@ -18,26 +18,25 @@
  */
 package org.beangle.repo.proxy.web.handler
 
-import java.io.{ File, FileInputStream }
+import java.io.{File, FileInputStream}
 import java.text.SimpleDateFormat
-import java.util.Arrays
+import java.{util => ju}
 
-import org.beangle.commons.activation.MimeTypes
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import org.beangle.commons.activation.MediaTypes
 import org.beangle.commons.lang.Strings
 import org.beangle.commons.web.io.RangedWagon
 import org.beangle.commons.web.util.RequestUtils
+import org.beangle.repo.proxy.service.RepoService
 import org.beangle.webmvc.api.util.CacheControl
 import org.beangle.webmvc.execution.Handler
-
-import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
-import org.beangle.repo.proxy.service.RepoService
-import org.beangle.repo.artifact.Repo
 
 /**
  * @author chaostone
  */
 class GetHandler extends Handler {
   val wagon = new RangedWagon
+
   def handle(request: HttpServletRequest, response: HttpServletResponse): Any = {
     val filePath = RequestUtils.getServletPath(request)
     val repos = RepoService.repos
@@ -72,7 +71,7 @@ class GetHandler extends Handler {
   private def transfer(file: File, request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val fileName = file.getName
     val ext = Strings.substringAfterLast(fileName, ".")
-    if (Strings.isNotEmpty(ext)) MimeTypes.getMimeType(ext) foreach (m => response.setContentType(m.toString))
+    if (Strings.isNotEmpty(ext)) MediaTypes.get(ext) foreach (m => response.setContentType(m.toString))
     if (!fileName.contains("SNAPSHOT")) CacheControl.expiresAfter(10, response)
     response.setDateHeader("Last-Modified", file.lastModified)
     wagon.copy(new FileInputStream(file), request, response)
@@ -94,9 +93,9 @@ class GetHandler extends Handler {
     var prefix = ""
     if (!uri.endsWith("/")) {
       prefix = Strings.substringAfterLast(uri, "/")
-      if (prefix.isEmpty()) prefix = request.getContextPath + "/" else prefix += "/"
+      if (prefix.isEmpty) prefix = request.getContextPath + "/" else prefix += "/"
     }
-    Arrays.sort(items.asInstanceOf[Array[Object]])
+    ju.Arrays.sort(items.asInstanceOf[Array[Object]])
     items foreach { fileName =>
       val href = prefix + fileName
       buffer.clear()
@@ -110,7 +109,7 @@ class GetHandler extends Handler {
           if (fileName.length < 60) buffer ++= " " * (60 - fileName.length)
         }
         val lastModified = new java.util.Date(item.lastModified)
-        buffer ++= (formater.format(lastModified))
+        buffer ++= formater.format(lastModified)
         if (item.isDirectory) {
           buffer ++= "                   -"
         } else {
@@ -118,7 +117,7 @@ class GetHandler extends Handler {
           buffer ++= (" " * (20 - fileSize.length))
           buffer ++= fileSize
         }
-        buffer ++= ("\n")
+        buffer ++= "\n"
         writer.write(buffer.toString)
       }
     }

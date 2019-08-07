@@ -18,7 +18,7 @@
  */
 package org.beangle.repo.artifact
 
-import java.io.{ File, InputStreamReader, LineNumberReader }
+import java.io.{File, InputStreamReader, LineNumberReader}
 import java.net.URL
 
 import org.beangle.commons.collection.Collections
@@ -34,7 +34,7 @@ object BeangleResolver extends DependencyResolver {
 
   val DependenciesFile = "META-INF/beangle/container.dependencies"
 
-  val WarDependenciesFile = "/WEB-INF/classes/" + DependenciesFile
+  val WarDependenciesFile: String = "/WEB-INF/classes/" + DependenciesFile
 
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
@@ -64,7 +64,7 @@ object BeangleResolver extends DependencyResolver {
     val artifacts = resolve(file)
     new ArtifactDownloader(remoteRepo, localRepo).download(artifacts)
     val missing = artifacts filter (!localRepo.exists(_))
-    if (!missing.isEmpty) {
+    if (missing.nonEmpty) {
       println("Download error :" + missing)
     }
   }
@@ -75,7 +75,7 @@ object BeangleResolver extends DependencyResolver {
   def resolve(file: String): Iterable[Artifact] = {
     val dependencyFile = new File(file)
     if (!dependencyFile.exists) {
-      println(s"Cannot find ${file}")
+      println(s"Cannot find $file")
       return List.empty
     }
     val url: URL =
@@ -85,7 +85,7 @@ object BeangleResolver extends DependencyResolver {
           nestedUrl.openConnection.connect()
           nestedUrl
         } catch {
-          case e: Throwable =>
+          case _: Throwable =>
             println("Resolving skiped,cannot find META-INF/beangle/container.dependencies.")
             return List.empty
         }
@@ -98,7 +98,7 @@ object BeangleResolver extends DependencyResolver {
           return List.empty
         }
       } else {
-        dependencyFile.toURI().toURL()
+        dependencyFile.toURI.toURL
       }
     resolve(url)
   }
@@ -116,7 +116,7 @@ object BeangleResolver extends DependencyResolver {
           val infos = line.split(":")
           artifacts += new Artifact(infos(0), infos(1), infos(2))
         }
-      } while (line != null);
+      } while (line != null)
       lr.close()
     } catch {
       case e: Exception => e.printStackTrace()

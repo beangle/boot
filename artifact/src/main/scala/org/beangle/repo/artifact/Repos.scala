@@ -18,8 +18,8 @@
  */
 package org.beangle.repo.artifact
 
-import scala.reflect.api.Mirror
 import java.io.File
+
 import org.beangle.repo.artifact.downloader.RangeDownloader
 
 trait Repos {

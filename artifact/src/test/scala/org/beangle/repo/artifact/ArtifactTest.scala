@@ -18,23 +18,24 @@
  */
 package org.beangle.repo.artifact
 
-import org.junit.runner.RunWith
-import org.scalatest.{ FunSpec, Matchers }
-import org.scalatest.junit.JUnitRunner
 import java.io.File
+
 import org.beangle.commons.lang.SystemInfo
+import org.junit.runner.RunWith
+import org.scalatest.Matchers
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatestplus.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ArtifactTest extends FunSpec with Matchers {
-  val older = Artifact("org.beangle.commons", "beangle-commons-core_2.12", "4.6.1", Some("sources"), "jar")
-  val artifact = Artifact("org.beangle.commons", "beangle-commons-core_2.12", "4.6.2", Some("sources"),
-    "jar")
+class ArtifactTest extends AnyFunSpec with Matchers {
+  val older = Artifact("org.beangle.commons", "beangle-commons-core_2.12", "4.6.1", Some("sources"))
+  val artifact = Artifact("org.beangle.commons", "beangle-commons-core_2.12", "4.6.2", Some("sources"))
   val jsonlib1 = Artifact("net.sf.json-lib:json-lib:jar:jdk15:2.4")
   val jsonlib2 = Artifact("net.sf.json-lib:json-lib:jar:2.4")
   val jsonlib3 = Artifact("net.sf.json-lib:json-lib:jdk15:2.4")
 
   val tempLocalRepo = new File(SystemInfo.tmpDir + "/.m2/repository")
-  tempLocalRepo.mkdirs();
+  tempLocalRepo.mkdirs()
   val local = new Repo.Local(tempLocalRepo.getAbsolutePath)
 
   describe("artifact ") {
@@ -58,14 +59,13 @@ class ArtifactTest extends FunSpec with Matchers {
 
     it("to path") {
       val loc = local.url(artifact)
-      println(loc)
-      loc should be equals (tempLocalRepo.getAbsolutePath + "/org/beangle/commons/beangle-commons-core_2.12"
-        + "/4.6.2/beangle-commons-core_2.12-4.6.2-sources.jar")
+      assert(loc == (tempLocalRepo.getAbsolutePath + "/org/beangle/commons/beangle-commons-core_2.12"
+        + "/4.6.2/beangle-commons-core_2.12-4.6.2-sources.jar"))
     }
     it("diff path") {
-      val diff = Diff(older, "4.6.2");
+      val diff = Diff(older, "4.6.2")
       val rs = local.url(diff).contains("org/beangle/commons/beangle-commons-core_2.12/4.6.2/beangle-commons-core_2.12-4.6.1_4.6.2-sources.jar.diff")
-      rs should be equals (true)
+      rs should be equals true
     }
   }
 }

@@ -18,14 +18,13 @@
  */
 package org.beangle.repo.proxy.web
 
-import java.util.EnumSet
-import org.beangle.webmvc.dispatch.Dispatcher
-import javax.servlet.{ DispatcherType, ServletContext }
+import javax.servlet.ServletContext
 import org.beangle.cdi.spring.web.ContextListener
+import org.beangle.webmvc.dispatch.Dispatcher
 
 class Initializer extends org.beangle.commons.web.init.Initializer {
 
-  override def onStartup(sc: ServletContext) {
+  override def onStartup(sc: ServletContext): Unit = {
     sc.setInitParameter("templatePath", "class://")
 
     val ctxListener = new ContextListener

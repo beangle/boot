@@ -22,9 +22,9 @@ object FileSize {
 
   def apply(total: Long): String = {
     if (total < 1024) {
-      total + "Byte"
+      s"${total}Byte"
     } else {
-      (total / 1024) + "KB"
+      s"${total / 1024}KB"
     }
   }
 }

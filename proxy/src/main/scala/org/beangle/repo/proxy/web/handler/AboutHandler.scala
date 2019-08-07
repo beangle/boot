@@ -18,12 +18,10 @@
  */
 package org.beangle.repo.proxy.web.handler
 
-import java.io.FileInputStream
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.beangle.commons.io.IOs
-import org.beangle.webmvc.execution.Handler
 import org.beangle.commons.lang.ClassLoaders
+import org.beangle.webmvc.execution.Handler
 
 class AboutHandler extends Handler {
 
