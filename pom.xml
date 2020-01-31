@@ -3,24 +3,24 @@
   <parent>
     <groupId>org.beangle</groupId>
     <artifactId>beangle-scala</artifactId>
-    <version>26.2</version>
+    <version>27.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.beangle.repo</groupId>
   <artifactId>beangle-repo-parent</artifactId>
   <packaging>pom</packaging>
   <name>Beangle Repository Toolkit</name>
-  <version>0.0.13-SNAPSHOT</version>
+  <version>0.0.13</version>
 
   <properties>
-    <beangle.commons.version>5.1.8</beangle.commons.version>
-    <beangle.mvc.version>0.3.30</beangle.mvc.version>
-    <beangle.cdi.version>0.1.1</beangle.cdi.version>
+    <beangle.commons.version>5.1.11</beangle.commons.version>
+    <beangle.mvc.version>0.3.34</beangle.mvc.version>
+    <beangle.cdi.version>0.2.1</beangle.cdi.version>
     <commons.compress.version>1.18</commons.compress.version>
   </properties>
 
   <description>
-    Beangle Maven Tool Kit
+    Beangle Artifact Repository Tool Kit
   </description>
 
   <modules>
