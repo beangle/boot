@@ -23,8 +23,8 @@ import java.net.{HttpURLConnection, URL}
 import java.util.concurrent.{Callable, ExecutorService, Executors}
 
 import org.beangle.commons.collection.Collections
-import org.beangle.commons.net.http.HttpUtils
 import org.beangle.commons.io.IOs
+import org.beangle.commons.net.http.HttpUtils
 
 object RangeDownloader {
   def apply(name: String, url: String, location: String): RangeDownloader = {
@@ -56,16 +56,16 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
   protected override def downloading(): Unit = {
     val urlStatus = access()
     if (urlStatus.length < 0) {
-      println("\r" + HttpUtils.toString(urlStatus.status) + " " + url)
+      logger.info("\r" + HttpUtils.toString(urlStatus.status) + " " + url)
       return
     }
     //小于100k的普通下载
     if (urlStatus.length < 102400 || !urlStatus.supportRange) {
-      if (verbose) println("Downloading " + urlStatus.target + "[" + urlStatus.length + "b]")
+      if (verbose) logger.info("Downloading " + urlStatus.target + "[" + urlStatus.length + "b]")
       super.defaultDownloading(urlStatus.target.openConnection)
       return
     } else {
-      if (verbose) println("Range-Downloading " + url)
+      if (verbose) logger.info("Range-Downloading " + url)
     }
     this.status = new Downloader.Status(urlStatus.length)
     if (this.status.total > java.lang.Integer.MAX_VALUE) {

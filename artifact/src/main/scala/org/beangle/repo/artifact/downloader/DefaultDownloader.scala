@@ -23,7 +23,7 @@ import java.net.URL
 
 class DefaultDownloader(id: String, url: URL, location: File) extends AbstractDownloader(id, url, location) {
   protected override def downloading(): Unit = {
-    println("Downloading " + url)
+    logger.info("Downloading " + url)
     super.defaultDownloading(url.openConnection())
   }
 }

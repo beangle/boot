@@ -24,6 +24,7 @@ import java.util.concurrent.{ConcurrentHashMap, ExecutorService, Executors}
 
 import org.beangle.commons.codec.binary.Base64
 import org.beangle.commons.collection.Collections
+import org.beangle.commons.logging.Logging
 import org.beangle.repo.artifact.downloader.{Downloader, RangeDownloader}
 import org.beangle.repo.artifact.util.{Delta, FileSize}
 
@@ -44,7 +45,7 @@ object ArtifactDownloader {
   }
 }
 
-class ArtifactDownloader(private val remote: Repo.Remote, private val local: Repo.Local) {
+class ArtifactDownloader(private val remote: Repo.Remote, private val local: Repo.Local) extends Logging {
 
   private val properties = Collections.newMap[String, String]
 
@@ -80,7 +81,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     for (diff <- diffs) {
       val diffFile = local.file(diff)
       if (diffFile.exists) {
-        if (verbose) println("Patching " + diff)
+        if (verbose) logger.info("Patching " + diff)
         Delta.patch(local.url(diff.older), local.url(diff.newer), local.url(diff))
         newers += diff.newer
       }
@@ -94,9 +95,9 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     doDownload(newers, executor, statuses)
     // verify sha1 against newer artifacts.
     for (artifact <- newers) {
-      if (verbose) println("Verifing " + artifact.sha1)
+      if (verbose) logger.info("Verifing " + artifact.sha1)
       if (!local.verifySha1(artifact)) {
-        if (verbose) println("Error sha1 for " + artifact + ",Remove it.")
+        if (verbose) logger.info("Error sha1 for " + artifact + ",Remove it.")
         local.remove(artifact)
       }
     }

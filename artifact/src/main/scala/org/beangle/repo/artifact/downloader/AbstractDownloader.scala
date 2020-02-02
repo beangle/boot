@@ -23,11 +23,12 @@ import java.net.HttpURLConnection.HTTP_OK
 import java.net.{HttpURLConnection, URL, URLConnection}
 
 import org.beangle.commons.io.IOs
+import org.beangle.commons.logging.Logging
 import org.beangle.commons.net.http.HttpUtils
 import org.beangle.repo.artifact.util.FileSize
 
 abstract class AbstractDownloader(val name: String, val url: URL, protected val location: File)
-  extends Downloader {
+  extends Downloader with Logging {
 
   protected var status: Downloader.Status = _
   protected var startAt: Long = _
@@ -65,11 +66,11 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
     if (verbose) {
       val printurl = "\r" + name + " " + url + " "
       if (status.total < 1024) {
-        if (elaps == 0) println(printurl + FileSize(status.total))
-        else println(printurl + status.total + "Byte(" + elaps / 1000 + "s)")
+        if (elaps == 0) logger.info(printurl + FileSize(status.total))
+        else logger.info(printurl + status.total + "Byte(" + elaps / 1000 + "s)")
       } else {
-        if (elaps == 0) println(printurl + FileSize(status.total))
-        else println(printurl + FileSize(status.total) + "(" + ((status.total / 1024.0 / elaps * 100000.0).toInt / 100.0) + "KB/s)")
+        if (elaps == 0) logger.info(printurl + FileSize(status.total))
+        else logger.info(printurl + FileSize(status.total) + "(" + ((status.total / 1024.0 / elaps * 100000.0).toInt / 100.0) + "KB/s)")
       }
     }
   }
