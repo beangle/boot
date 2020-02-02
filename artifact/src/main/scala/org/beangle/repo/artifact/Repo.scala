@@ -126,7 +126,7 @@ object Repo {
   }
 
   object Remote {
-    val CentralURL = "http://central.maven.org/maven2"
+    val CentralURL = "https://repo1.maven.org/maven2"
     val AliyunURL = "https://maven.aliyun.com/nexus/content/groups/public"
   }
 

@@ -19,12 +19,12 @@
 package org.beangle.repo.artifact.downloader
 
 import java.io.{File, FileOutputStream, InputStream, OutputStream}
-import java.net.HttpURLConnection.HTTP_OK
+import java.net.HttpURLConnection.{HTTP_MOVED_PERM, HTTP_MOVED_TEMP, HTTP_OK}
 import java.net.{HttpURLConnection, URL, URLConnection}
 
 import org.beangle.commons.io.IOs
 import org.beangle.commons.logging.Logging
-import org.beangle.commons.net.http.HttpUtils
+import org.beangle.commons.net.http.Https
 import org.beangle.repo.artifact.util.FileSize
 
 abstract class AbstractDownloader(val name: String, val url: URL, protected val location: File)
@@ -52,7 +52,7 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
   protected def downloading(): Unit
 
   protected def access(): ResourceStatus = {
-    val hc = HttpUtils.followRedirect(this.url.openConnection(), "HEAD")
+    val hc = followRedirect(this.url.openConnection(), "HEAD")
     val rc = hc.asInstanceOf[HttpURLConnection].getResponseCode
     rc match {
       case HTTP_OK =>
@@ -76,7 +76,7 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
   }
 
   protected def defaultDownloading(c: URLConnection): Unit = {
-    val conn = HttpUtils.followRedirect(c, "GET")
+    val conn = followRedirect(c, "GET")
     var input: InputStream = null
     var output: OutputStream = null
     try {
@@ -107,5 +107,28 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
   }
 
   case class ResourceStatus(status: Int, target: URL, length: Long, lastModified: Long, supportRange: Boolean)
+
+
+  /**
+   * FIXME remote it ,when rebased on commons 5.1.12
+   * @param c
+   * @param method
+   * @return
+   */
+  @scala.annotation.tailrec
+  final def followRedirect(c: URLConnection, method: String): HttpURLConnection = {
+    val conn = c.asInstanceOf[HttpURLConnection]
+    conn.setRequestMethod(method)
+    conn.setInstanceFollowRedirects(false)
+    Https.noverify(conn)
+    val rc = conn.getResponseCode
+    rc match {
+      case HTTP_OK => conn
+      case HTTP_MOVED_TEMP | HTTP_MOVED_PERM =>
+        val newLoc = conn.getHeaderField("location")
+        followRedirect(new URL(newLoc).openConnection, method)
+      case _ => conn
+    }
+  }
 
 }
