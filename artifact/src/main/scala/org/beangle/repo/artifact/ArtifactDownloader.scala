@@ -24,7 +24,6 @@ import java.util.concurrent.{ConcurrentHashMap, ExecutorService, Executors}
 
 import org.beangle.commons.codec.binary.Base64
 import org.beangle.commons.collection.Collections
-import org.beangle.commons.logging.Logging
 import org.beangle.repo.artifact.downloader.{Downloader, RangeDownloader}
 import org.beangle.repo.artifact.util.{Delta, FileSize}
 
@@ -45,7 +44,7 @@ object ArtifactDownloader {
   }
 }
 
-class ArtifactDownloader(private val remote: Repo.Remote, private val local: Repo.Local) extends Logging {
+class ArtifactDownloader(private val remote: Repo.Remote, private val local: Repo.Local) {
 
   private val properties = Collections.newMap[String, String]
 
@@ -81,7 +80,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     for (diff <- diffs) {
       val diffFile = local.file(diff)
       if (diffFile.exists) {
-        if (verbose) logger.info("Patching " + diff)
+        if (verbose) println("Patching " + diff)
         Delta.patch(local.url(diff.older), local.url(diff.newer), local.url(diff))
         newers += diff.newer
       }
@@ -95,9 +94,9 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     doDownload(newers, executor, statuses)
     // verify sha1 against newer artifacts.
     for (artifact <- newers) {
-      if (verbose) logger.info("Verifing " + artifact.sha1)
+      if (verbose) println("Verifing " + artifact.sha1)
       if (!local.verifySha1(artifact)) {
-        if (verbose) logger.info("Error sha1 for " + artifact + ",Remove it.")
+        if (verbose) println("Error sha1 for " + artifact + ",Remove it.")
         local.remove(artifact)
       }
     }
@@ -131,7 +130,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     val splash = Array('\\', '|', '/', '-')
     val count = statuses.size
     while (!statuses.isEmpty && !executor.isTerminated) {
-      sleep(500)
+      sleep(1000)
       print("\r")
       val sb = new StringBuilder()
       sb.append(splash(i % 4)).append("  ")
@@ -148,7 +147,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
 
   private def sleep(millsecond: Int): Unit = {
     try {
-      Thread.sleep(500)
+      Thread.sleep(millsecond)
     } catch {
       case e: InterruptedException =>
         e.printStackTrace()
