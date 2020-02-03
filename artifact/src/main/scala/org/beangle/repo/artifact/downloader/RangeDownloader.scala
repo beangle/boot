@@ -56,16 +56,16 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
   protected override def downloading(): Unit = {
     val urlStatus = access()
     if (urlStatus.length < 0) {
-      logger.info("\r" + HttpUtils.toString(urlStatus.status) + " " + url)
+      println("\r" + HttpUtils.toString(urlStatus.status) + " " + url)
       return
     }
     //小于100k的普通下载
     if (urlStatus.length < 102400 || !urlStatus.supportRange) {
-      if (verbose) logger.info("Downloading " + urlStatus.target + "[" + urlStatus.length + "b]")
+      if (verbose) println("Downloading " + urlStatus.target + "[" + urlStatus.length + "b]")
       super.defaultDownloading(urlStatus.target.openConnection)
       return
     } else {
-      if (verbose) logger.info("Range-Downloading " + url)
+      if (verbose) println("Range-Downloading " + url)
     }
     this.status = new Downloader.Status(urlStatus.length)
     if (this.status.total > java.lang.Integer.MAX_VALUE) {
