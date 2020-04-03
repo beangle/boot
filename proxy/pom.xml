@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.beangle.repo</groupId>
     <artifactId>beangle-repo-parent</artifactId>
-    <version>0.0.15</version>
+    <version>0.0.16</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.beangle.repo</groupId>

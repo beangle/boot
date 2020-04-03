@@ -94,7 +94,6 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     doDownload(newers, executor, statuses)
     // verify sha1 against newer artifacts.
     for (artifact <- newers) {
-      if (verbose) println("Verifing " + artifact.sha1)
       if (!local.verifySha1(artifact)) {
         if (verbose) println("Error sha1 for " + artifact + ",Remove it.")
         local.remove(artifact)
@@ -126,23 +125,25 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
         idx += 1
       }
     }
-    var i = 0
-    val splash = Array('\\', '|', '/', '-')
-    val count = statuses.size
-    while (!statuses.isEmpty && !executor.isTerminated) {
-      sleep(1000)
-      print("\r")
-      val sb = new StringBuilder()
-      sb.append(splash(i % 4)).append("  ")
-      for ((_, value) <- asScala(statuses)) {
-        val downloader = value
-        sb.append(FileSize(downloader.downloaded) + "/" + FileSize(downloader.contentLength) + "    ")
+    if (verbose) {
+      var i = 0
+      val splash = Array('\\', '|', '/', '-')
+      val count = statuses.size
+      while (!statuses.isEmpty && !executor.isTerminated) {
+        sleep(1000)
+        print("\r")
+        val sb = new StringBuilder()
+        sb.append(splash(i % 4)).append("  ")
+        for ((_, value) <- asScala(statuses)) {
+          val downloader = value
+          sb.append(FileSize(downloader.downloaded) + "/" + FileSize(downloader.contentLength) + "    ")
+        }
+        sb.append(" " * (100 - sb.length))
+        i += 1
+        print(sb.toString)
       }
-      sb.append(" " * (100 - sb.length))
-      i += 1
-      print(sb.toString)
+      if (count > 0) print("\n")
     }
-    if (count > 0) print("\n")
   }
 
   private def sleep(millsecond: Int): Unit = {
