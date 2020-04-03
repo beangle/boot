@@ -94,7 +94,6 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     doDownload(newers, executor, statuses)
     // verify sha1 against newer artifacts.
     for (artifact <- newers) {
-      if (verbose) println("Verifing " + artifact.sha1)
       if (!local.verifySha1(artifact)) {
         if (verbose) println("Error sha1 for " + artifact + ",Remove it.")
         local.remove(artifact)
