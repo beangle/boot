@@ -22,8 +22,8 @@ import java.io.File
 
 import org.beangle.commons.lang.SystemInfo
 import org.junit.runner.RunWith
-import org.scalatest.Matchers
 import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

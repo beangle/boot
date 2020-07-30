@@ -21,7 +21,8 @@ package org.beangle.repo.artifact
 trait Product
 
 object Artifact {
-  val packagings: Set[String] = Set("jar", "war", "pom", "zip", "ear", "rar", "ejb", "ejb3", "tar", "tar.gz")
+  private val packagings =
+    Set("jar", "war", "pom", "zip", "ear", "rar", "ejb", "ejb3", "tar", "tar.gz")
 
   /**
    * Resolve gav string
