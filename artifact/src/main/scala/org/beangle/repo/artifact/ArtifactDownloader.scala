@@ -67,9 +67,9 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
         if (!local.file(sha1).exists()) {
           sha1s += sha1
         }
-      }
-      local.lastestBefore(artifact) foreach { lastest =>
-        diffs += Diff(lastest, artifact.version)
+        local.lastestBefore(artifact) foreach { lastest =>
+          diffs += Diff(lastest, artifact.version)
+        }
       }
     }
     doDownload(sha1s, executor, statuses)
