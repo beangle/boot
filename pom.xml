@@ -10,7 +10,7 @@
   <artifactId>beangle-repo-parent</artifactId>
   <packaging>pom</packaging>
   <name>Beangle Repository Toolkit</name>
-  <version>0.0.17</version>
+  <version>0.0.18-SNAPSHOT</version>
 
   <properties>
     <beangle.commons.version>5.1.17</beangle.commons.version>
