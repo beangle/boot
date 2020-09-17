@@ -133,7 +133,7 @@ object Repo {
   class Remote(val id: String, var base: String, val layout: Layout = Layout.Maven2) extends Repository {
     this.base = normalizeUrl(base)
 
-    def this() {
+    def this() = {
       this("central", Remote.CentralURL, Layout.Maven2)
     }
 
