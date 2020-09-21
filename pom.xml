@@ -3,18 +3,18 @@
   <parent>
     <groupId>org.beangle</groupId>
     <artifactId>beangle-scala</artifactId>
-    <version>27.1</version>
+    <version>28.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.beangle.repo</groupId>
   <artifactId>beangle-repo-parent</artifactId>
   <packaging>pom</packaging>
   <name>Beangle Repository Toolkit</name>
-  <version>0.0.17</version>
+  <version>0.0.18</version>
 
   <properties>
-    <beangle.commons.version>5.1.17</beangle.commons.version>
-    <beangle.cdi.version>0.2.2</beangle.cdi.version>
+    <beangle.commons.version>5.2.0</beangle.commons.version>
+    <beangle.cdi.version>0.2.3</beangle.cdi.version>
     <commons.compress.version>1.18</commons.compress.version>
   </properties>
 
