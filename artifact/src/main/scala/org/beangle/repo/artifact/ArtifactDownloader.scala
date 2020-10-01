@@ -50,56 +50,75 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
 
   var verbose: Boolean = true
 
+  var maxthread: Int = 5
+
   def authorization(username: String, password: String): Unit = {
     properties.put("Authorization", "Basic " + Base64.encode(s"$username:$password".getBytes))
   }
 
   def download(artifacts: Iterable[Artifact]): Unit = {
     val statuses = new ConcurrentHashMap[URL, Downloader]
-    val executor = Executors.newFixedThreadPool(5)
+    val executor = Executors.newFixedThreadPool(maxthread)
 
     val sha1s = new collection.mutable.ArrayBuffer[Artifact]
     val diffs = new collection.mutable.ArrayBuffer[Diff]
 
-    for (artifact <- artifacts if !local.file(artifact).exists) {
+    for (artifact <- artifacts) {
       if (!artifact.packaging.endsWith("sha1")) {
         val sha1 = artifact.sha1
         if (!local.file(sha1).exists()) {
           sha1s += sha1
         }
+      }
+      if (!local.file(artifact).exists && !artifact.packaging.endsWith("sha1")) {
         local.lastestBefore(artifact) foreach { lastest =>
           diffs += Diff(lastest, artifact.version)
         }
       }
     }
+    // download sha1s
     doDownload(sha1s, executor, statuses)
-
     // download diffs and patch them.
     doDownload(diffs, executor, statuses)
-    val newers = new collection.mutable.ArrayBuffer[Artifact]
+
     for (diff <- diffs) {
       val diffFile = local.file(diff)
       if (diffFile.exists) {
         if (verbose) println("Patching " + diff)
         Delta.patch(local.url(diff.older), local.url(diff.newer), local.url(diff))
-        newers += diff.newer
       }
     }
+
+    val newers = new collection.mutable.ArrayBuffer[Artifact]
     // check it,last time.
     for (artifact <- artifacts) {
-      if (!local.file(artifact).exists) {
+      if (needDownload(local, artifact)) {
         newers += artifact
       }
     }
     doDownload(newers, executor, statuses)
     // verify sha1 against newer artifacts.
     for (artifact <- newers) {
-      if (!local.verifySha1(artifact)) {
-        if (verbose) println("Error sha1 for " + artifact + ",Remove it.")
-        local.remove(artifact)
-      }
+      needDownload(local, artifact)
     }
     executor.shutdown()
+  }
+
+  private def needDownload(local: Repo.Local, artifact: Artifact): Boolean = {
+    if (local.file(artifact).exists) {
+      local.verifySha1(artifact) match {
+        case None =>
+          if (verbose) println("Error Cannot find " + artifact.sha1 + ",Verify aborted.")
+          false
+        case Some(false) =>
+          if (verbose) println("Error sha1 for " + artifact + ",Remove it.")
+          local.remove(artifact)
+          true
+        case Some(true) => false
+      }
+    } else {
+      true
+    }
   }
 
   private def doDownload(products: Iterable[Product], executor: ExecutorService, statuses: ConcurrentHashMap[URL, Downloader]): Unit = {
@@ -126,6 +145,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
       }
     }
     if (verbose) {
+      val maxBufferWidth = 100
       var i = 0
       val splash = Array('\\', '|', '/', '-')
       val count = statuses.size
@@ -134,13 +154,17 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
         print("\r")
         val sb = new StringBuilder()
         sb.append(splash(i % 4)).append("  ")
-        for ((_, value) <- asScala(statuses)) {
-          val downloader = value
-          sb.append(FileSize(downloader.downloaded) + "/" + FileSize(downloader.contentLength) + "    ")
+        for ((_, dl) <- asScala(statuses)) {
+          sb.append(FileSize(dl.downloaded) + "/" + FileSize(dl.contentLength) + "    ")
         }
-        sb.append(" " * (100 - sb.length))
-        i += 1
-        print(sb.toString)
+        if (sb.length() > maxBufferWidth) {
+          sb.delete(maxBufferWidth, sb.length())
+        }
+        if (sb.length > 3) { //collect status
+          sb.append(" " * (maxBufferWidth - sb.length))
+          i += 1
+          print(sb.toString)
+        }
       }
       if (count > 0) print("\n")
     }

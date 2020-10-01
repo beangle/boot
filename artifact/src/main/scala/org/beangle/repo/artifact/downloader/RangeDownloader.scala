@@ -18,13 +18,16 @@
  */
 package org.beangle.repo.artifact.downloader
 
-import java.io.{File, FileOutputStream}
+import java.io._
 import java.net.{HttpURLConnection, URL}
 import java.util.concurrent.{Callable, ExecutorService, Executors}
 
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.IOs
+import org.beangle.commons.lang.Strings
 import org.beangle.commons.net.http.HttpUtils
+
+import scala.collection.mutable
 
 object RangeDownloader {
   def apply(name: String, url: String, location: String): RangeDownloader = {
@@ -34,10 +37,7 @@ object RangeDownloader {
 
 class RangeDownloader(name: String, url: URL, location: File) extends AbstractDownloader(name, url, location) {
 
-  var threads: Int = 20
-
-  //one step is 100k
-  var step: Int = 100 * 1024
+  var threads: Int = 10
 
   var executor: ExecutorService = Executors.newFixedThreadPool(threads)
 
@@ -59,51 +59,64 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
       println("\r" + HttpUtils.toString(urlStatus.status) + " " + url)
       return
     }
-    //小于100k的普通下载
-    if (urlStatus.length < 102400 || !urlStatus.supportRange) {
-      if (verbose) println("Downloading " + urlStatus.target + "[" + urlStatus.length + "b]")
+    //小于1M的普通下载
+    if (urlStatus.length <= 1024 * 1024 || !urlStatus.supportRange) {
+      if (verbose) println("\nDownloading " + urlStatus.target + "[" + urlStatus.length + "b]")
       super.defaultDownloading(urlStatus.target.openConnection)
       return
     } else {
-      if (verbose) println("Range-Downloading " + url)
+      if (verbose) println("\nRange-Downloading " + url)
     }
     this.status = new Downloader.Status(urlStatus.length)
     if (this.status.total > java.lang.Integer.MAX_VALUE) {
       throw new RuntimeException(s"Cannot download $url with size ${this.status.total}")
     }
 
-    val total = this.status.total.toInt
-    val totalbuffer = Array.ofDim[Byte](total)
     var lastModified: Long = urlStatus.lastModified
-    var begin = 0
-    val tasks = new java.util.ArrayList[Callable[Integer]]
-    while (begin < this.status.total) {
-      val start = begin
-      val end = if (start + step - 1 >= total) total - 1 else start + step - 1
+    val tasks = new java.util.ArrayList[Callable[Unit]]
+    val parts = new mutable.ArrayBuffer[File]
+    val steps = Array.ofDim[(Long, Long)](threads)
+    val avgStep = this.status.total / threads
+    steps.indices foreach { i =>
+      steps(i) = (i * avgStep, (i + 1) * avgStep - 1) // range contains head and tail
+    }
+    val lastSegment = steps(steps.length - 1)
+    steps(steps.length - 1) = (lastSegment._1, lastSegment._2 + this.status.total - avgStep * steps.length)
+    steps foreach { seg =>
+      val start = seg._1
+      val end = seg._2
+      val part = new File(location.getCanonicalPath + s".part_${start}_${end}")
+      parts += part
       tasks.add(() => {
-        val connection = urlStatus.target.openConnection.asInstanceOf[HttpURLConnection]
-        connection.setRequestProperty("RANGE", "bytes=" + start + "-" + end)
-        properties foreach (e => connection.setRequestProperty(e._1, e._2))
-        val input = connection.getInputStream
-        if (lastModified == 0) lastModified = connection.getLastModified
-        val buffer = Array.ofDim[Byte](1024)
-        var n = input.read(buffer)
-        var next = start
-        var tooMore = false
-        while (-1 != n && !tooMore) {
-          if (next + n - 1 > end) {
-            n = end - next + 1
-            tooMore = true
+        var input: InputStream = null
+        var output: OutputStream = null
+        try {
+          val connection = urlStatus.target.openConnection.asInstanceOf[HttpURLConnection]
+          connection.setRequestProperty("RANGE", "bytes=" + start + "-" + end)
+          output = new FileOutputStream(part)
+          properties foreach (e => connection.setRequestProperty(e._1, e._2))
+          input = connection.getInputStream
+          if (lastModified == 0) lastModified = connection.getLastModified
+          val buffer = Array.ofDim[Byte](1024)
+          var n = input.read(buffer)
+          var next = start
+          var tooMore = false
+          while (-1 != n && !tooMore) {
+            if (next + n - 1 > end) { //sometimes,it gives more than requires
+              n = (end - next + 1).asInstanceOf[Int]
+              tooMore = true
+            }
+            output.write(buffer, 0, n)
+            status.count.addAndGet(n)
+            next += n
+            n = input.read(buffer)
           }
-          System.arraycopy(buffer, 0, totalbuffer, next, n)
-          status.count.addAndGet(n)
-          next += n
-          n = input.read(buffer)
+        } catch {
+          case e: Throwable => e.printStackTrace()
+        } finally {
+          IOs.close(input, output)
         }
-        IOs.close(input)
-        end
       })
-      begin += step
     }
     try {
       executor.invokeAll(tasks)
@@ -112,14 +125,41 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
       case e: Throwable => e.printStackTrace()
     }
     if (status.count.get == status.total) {
-      val output = new FileOutputStream(location)
-      output.write(totalbuffer, 0, total)
+      if (corrupted(parts)) {
+        parts foreach (_.delete())
+      } else {
+        val part = new File(location.getCanonicalPath + s".part")
+        val output = new FileOutputStream(part)
+        parts foreach { p =>
+          IOs.copy(new FileInputStream(p), output)
+          p.delete()
+        }
+        IOs.close(output)
+        part.renameTo(location)
+      }
       if (lastModified > 0) location.setLastModified(lastModified)
-      IOs.close(output)
     } else {
+      corrupted(parts)
+      parts foreach (_.delete())
       throw new RuntimeException(s"Download error: expect ${status.total} but get ${status.count.get}.")
     }
     finish(url, System.currentTimeMillis() - startAt)
   }
 
+  private def corrupted(parts: Iterable[File]): Boolean = {
+    var corrupted = false
+    parts foreach { p =>
+      if (p.exists()) {
+        val sizeRange = Strings.split(Strings.substringAfterLast(p.getName, ".part_"), "_")
+        val size = (sizeRange(1).toLong - sizeRange(0).toLong + 1)
+        if (size != p.length()) {
+          println(s"${p.getCanonicalPath} is corrupted.")
+          corrupted = true
+        }
+      } else {
+        corrupted = true
+      }
+    }
+    corrupted
+  }
 }
