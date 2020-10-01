@@ -82,14 +82,14 @@ object Repo {
       new File(url(product)).delete()
     }
 
-    def verifySha1(artifact: Artifact): Boolean = {
+    def verifySha1(artifact: Artifact): Option[Boolean] = {
       val sha1 = artifact.sha1
       if (exists(artifact) && exists(sha1)) {
         val sha1sum = Delta.sha1(url(artifact))
         val sha1inFile = IOs.readString(new FileInputStream(url(sha1)), Charsets.UTF_8).trim()
-        sha1inFile.contains(sha1sum)
+        Some(sha1inFile.contains(sha1sum))
       } else {
-        true
+        None
       }
     }
 
