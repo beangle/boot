@@ -16,23 +16,29 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.beangle.repo.artifact.downloader
+package org.beangle.repo.artifact
 
 import java.io.File
 import java.net.URL
 
-import org.beangle.commons.net.http.HttpUtils
+import org.beangle.repo.artifact.downloader.DefaultDownloader
+import org.junit.runner.RunWith
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.junit.JUnitRunner
 
-class DefaultDownloader(id: String, url: URL, location: File) extends AbstractDownloader(id, url, location) {
-  protected override def downloading(): Unit = {
-    val urlStatus = access()
-    if (urlStatus.length < 0) {
-      println("\r" + HttpUtils.toString(urlStatus.status) + " " + url)
-      return
+
+@RunWith(classOf[JUnitRunner])
+class DownloadTest extends AnyFunSpec with Matchers {
+  describe("download missing") {
+    it("download missing") {
+      val location = File.createTempFile("ant", "jar")
+      val errorUrl = "https://maven.aliyun.com/nexus/content/groups/public/ant/ant/1.5.4/ant-1.5.4_1.5.3.jar.diff"
+
+      location.delete()
+      val downloader = new DefaultDownloader("1", new URL(errorUrl), location)
+      println(location)
+      downloader.start()
     }
-    if (verbose) {
-      println("Downloading " + url)
-    }
-    super.defaultDownloading(url.openConnection())
   }
 }

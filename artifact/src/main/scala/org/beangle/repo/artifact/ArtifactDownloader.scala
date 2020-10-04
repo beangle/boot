@@ -42,6 +42,8 @@ object ArtifactDownloader {
   def apply(remote: String, base: String = null): ArtifactDownloader = {
     new ArtifactDownloader(Repo.remote(remote), Repo.local(base))
   }
+
+  val DiffSupports = Set("zip", "war", "jar", "ear")
 }
 
 class ArtifactDownloader(private val remote: Repo.Remote, private val local: Repo.Local) {
@@ -70,7 +72,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
           sha1s += sha1
         }
       }
-      if (!local.file(artifact).exists && !artifact.packaging.endsWith("sha1")) {
+      if (!local.file(artifact).exists && ArtifactDownloader.DiffSupports.contains(artifact.packaging)) {
         local.lastestBefore(artifact) foreach { lastest =>
           diffs += Diff(lastest, artifact.version)
         }

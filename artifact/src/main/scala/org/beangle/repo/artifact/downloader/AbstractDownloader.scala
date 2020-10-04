@@ -19,12 +19,12 @@
 package org.beangle.repo.artifact.downloader
 
 import java.io.{File, FileOutputStream, InputStream, OutputStream}
-import java.net.HttpURLConnection.{HTTP_MOVED_PERM, HTTP_MOVED_TEMP, HTTP_OK}
+import java.net.HttpURLConnection.HTTP_OK
 import java.net.{HttpURLConnection, URL, URLConnection}
 
 import org.beangle.commons.io.IOs
+import org.beangle.commons.net.http.HttpUtils
 import org.beangle.commons.net.http.HttpUtils.followRedirect
-import org.beangle.commons.net.http.{HttpUtils, Https}
 import org.beangle.repo.artifact.util.FileSize
 
 abstract class AbstractDownloader(val name: String, val url: URL, protected val location: File) extends Downloader {
@@ -106,4 +106,5 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
   }
 
   case class ResourceStatus(status: Int, target: URL, length: Long, lastModified: Long, supportRange: Boolean)
+
 }
