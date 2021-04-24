@@ -47,35 +47,38 @@ object BeangleResolver extends DependencyResolver {
     if (args.length > 2) local = args(2)
 
     val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
-    process(args(0), remoteRepo, new Repo.Local(local))
+    val localRepo = new Repo.Local(local)
+    fetch(args(0), remoteRepo, localRepo) foreach { a =>
+      process(a, remoteRepo, localRepo)
+    }
   }
 
   /**
-   * 可以解析一个war，一个文本文件或者一个war解压后的文件夹
+   * 可以解析一个war|jar，一个文本文件或者一个war解压后的文件夹
    */
-  def resolve(file: String): Iterable[Artifact] = {
-    val dependencyFile = new File(file)
-    if (!dependencyFile.exists) {
+  def resolveArtifact(artifact: File): Iterable[Artifact] = {
+    val file = artifact.getAbsolutePath
+    if (!artifact.exists) {
       println(s"Cannot find $file")
       return List.empty
     }
 
     var url: URL = null
-    if (file.endsWith(".war")) {
-      val nestedUrl = new URL("jar:file:" + dependencyFile.getAbsolutePath + "!" + WarDependenciesFile)
+    if (file.endsWith(".war") || file.endsWith(".jar")) {
+      val nestedUrl = new URL("jar:file:" + artifact.getAbsolutePath + "!" + WarDependenciesFile)
       try {
         nestedUrl.openConnection.connect()
         url = nestedUrl
       } catch {
         case _: Throwable =>
       }
-    } else if (dependencyFile.isDirectory) {
+    } else if (artifact.isDirectory) {
       val nestedFile = new File(file + WarDependenciesFile)
       if (nestedFile.isFile) {
         url = nestedFile.toURI.toURL
       }
     } else {
-      url = dependencyFile.toURI.toURL
+      url = artifact.toURI.toURL
     }
     if (null == url) {
       List.empty
@@ -84,19 +87,29 @@ object BeangleResolver extends DependencyResolver {
     }
   }
 
-  def process(url: String, remoteRepo: Repo.Remote, localRepo: Repo.Local): Boolean = {
-    var file = url
+  def fetch(file: String, remoteRepo: Repo.Remote, localRepo: Repo.Local): Option[File] = {
     if (file.contains(":") && !file.contains("/") && !file.contains("\\")) {
       val war = Artifact(file).packaging("war")
       new ArtifactDownloader(remoteRepo, localRepo).download(List(war))
       if (!localRepo.exists(war)) {
         println("Download error:" + file)
-        return false
+        None
       } else {
-        file = localRepo.file(war).getAbsolutePath
+        Some(new File(localRepo.file(war).getAbsolutePath))
+      }
+    } else {
+      val localFile = new File(file)
+      if (localFile.exists) {
+        Some(localFile)
+      } else {
+        println(s"Cannot find $file")
+        None
       }
     }
-    val artifacts = resolve(file)
+  }
+
+  def process(file: File, remoteRepo: Repo.Remote, localRepo: Repo.Local): Boolean = {
+    val artifacts = resolveArtifact(file)
     new ArtifactDownloader(remoteRepo, localRepo).download(artifacts)
     val missing = artifacts filter (!localRepo.exists(_))
     if (missing.nonEmpty) {

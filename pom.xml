@@ -23,6 +23,7 @@
 
   <modules>
     <module>artifact</module>
+    <module>launcher</module>
   </modules>
 
   <dependencies>
