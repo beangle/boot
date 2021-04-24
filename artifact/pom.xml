@@ -1,23 +1,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <groupId>org.beangle.repo</groupId>
-    <artifactId>beangle-repo-parent</artifactId>
-    <version>0.0.20-SNAPSHOT</version>
+    <groupId>org.beangle.boot</groupId>
+    <artifactId>beangle-boot-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.beangle.repo</groupId>
-  <artifactId>beangle-repo-artifact_2.13</artifactId>
+  <groupId>org.beangle.boot</groupId>
+  <artifactId>beangle-boot-artifact_2.13</artifactId>
   <packaging>jar</packaging>
-  <name>Beangle Repo Artifact</name>
+  <name>Beangle Boot Artifact</name>
 
   <properties>
-    <bundle.symbolicName>org.beangle.repo.artifact</bundle.symbolicName>
-    <bundle.namespace>org.beangle.repo.artifact</bundle.namespace>
+    <bundle.symbolicName>org.beangle.boot.artifact</bundle.symbolicName>
+    <bundle.namespace>org.beangle.boot.artifact</bundle.namespace>
   </properties>
 
   <description>
-    Beangle Repository Artifact
+    Beangle Boot Artifact
   </description>
 
   <dependencies>

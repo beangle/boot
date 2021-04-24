@@ -18,10 +18,10 @@
  */
 package org.beangle.repo.artifact
 
+import org.beangle.commons.collection.Collections
+
 import java.io.{File, InputStreamReader, LineNumberReader}
 import java.net.URL
-
-import org.beangle.commons.collection.Collections
 
 trait DependencyResolver {
   def resolve(resource: URL): Iterable[Artifact]
@@ -47,26 +47,7 @@ object BeangleResolver extends DependencyResolver {
     if (args.length > 2) local = args(2)
 
     val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
-    val localRepo = new Repo.Local(local)
-
-    var file = args(0)
-    if (file.contains(":") && !file.contains("/") && !file.contains("\\")) {
-      val war = Artifact(file).packaging("war")
-      new ArtifactDownloader(remoteRepo, localRepo).download(List(war))
-      if (!localRepo.exists(war)) {
-        println("Download error:" + file)
-        return
-      } else {
-        file = localRepo.file(war).getAbsolutePath
-      }
-    }
-
-    val artifacts = resolve(file)
-    new ArtifactDownloader(remoteRepo, localRepo).download(artifacts)
-    val missing = artifacts filter (!localRepo.exists(_))
-    if (missing.nonEmpty) {
-      println("Download error :" + missing)
-    }
+    process(args(0), remoteRepo, new Repo.Local(local))
   }
 
   /**
@@ -100,6 +81,29 @@ object BeangleResolver extends DependencyResolver {
       List.empty
     } else {
       resolve(url)
+    }
+  }
+
+  def process(url: String, remoteRepo: Repo.Remote, localRepo: Repo.Local): Boolean = {
+    var file = url
+    if (file.contains(":") && !file.contains("/") && !file.contains("\\")) {
+      val war = Artifact(file).packaging("war")
+      new ArtifactDownloader(remoteRepo, localRepo).download(List(war))
+      if (!localRepo.exists(war)) {
+        println("Download error:" + file)
+        return false
+      } else {
+        file = localRepo.file(war).getAbsolutePath
+      }
+    }
+    val artifacts = resolve(file)
+    new ArtifactDownloader(remoteRepo, localRepo).download(artifacts)
+    val missing = artifacts filter (!localRepo.exists(_))
+    if (missing.nonEmpty) {
+      println("Download error :" + missing)
+      false
+    } else {
+      true
     }
   }
 

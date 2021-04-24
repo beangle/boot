@@ -3,23 +3,22 @@
   <parent>
     <groupId>org.beangle</groupId>
     <artifactId>beangle-scala</artifactId>
-    <version>28.0</version>
+    <version>28.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.beangle.repo</groupId>
-  <artifactId>beangle-repo-parent</artifactId>
+  <groupId>org.beangle.boot</groupId>
+  <artifactId>beangle-boot-parent</artifactId>
   <packaging>pom</packaging>
-  <name>Beangle Repository Toolkit</name>
-  <version>0.0.20-SNAPSHOT</version>
+  <name>Beangle Boot Toolkit</name>
+  <version>0.0.1-SNAPSHOT</version>
 
   <properties>
-    <beangle.commons.version>5.2.0</beangle.commons.version>
-    <beangle.cdi.version>0.2.3</beangle.cdi.version>
+    <beangle.commons.version>5.2.1</beangle.commons.version>
     <commons.compress.version>1.18</commons.compress.version>
   </properties>
 
   <description>
-    Beangle Artifact Repository Tool Kit
+    Beangle Boot ToolKit
   </description>
 
   <modules>
