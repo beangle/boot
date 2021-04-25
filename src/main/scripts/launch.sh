@@ -43,25 +43,22 @@ download(){
 }
 
 export scala_ver=2.13.3
-export scalaxml_ver=2.0.0-M1
 export beangle_commons_ver=5.2.0
 export beangle_template_ver=0.0.28
 export slf4j_ver=2.0.0-alpha1
 export logback_ver=1.3.0-alpha5
 export commons_compress_ver=1.18
-export boot_ver=0.0.1-SNAPSHOT
+export boot_ver=0.0.20
 
 download org.scala-lang scala-library $scala_ver
 download org.scala-lang scala-reflect $scala_ver
 download org.beangle.commons beangle-commons-core_2.13  $beangle_commons_ver
 download org.beangle.commons beangle-commons-file_2.13  $beangle_commons_ver
 download org.apache.commons commons-compress $commons_compress_ver
-download org.beangle.boot beangle-boot-artifact_2.13  $boot_ver
-download org.beangle.boot beangle-boot-launcher_2.13  $boot_ver
+download org.beangle.boot beangle-boot_2.13 $boot_ver
 download org.slf4j slf4j-api $slf4j_ver
 download ch.qos.logback logback-core $logback_ver
 download ch.qos.logback logback-classic $logback_ver
-download ch.qos.logback logback-access $logback_ver
 
 jarfile=""
 for arg in "$@"
