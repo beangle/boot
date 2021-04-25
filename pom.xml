@@ -7,8 +7,8 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.beangle.boot</groupId>
-  <artifactId>beangle-boot-parent</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>beangle-boot</artifactId>
+  <packaging>jar</packaging>
   <name>Beangle Boot Toolkit</name>
   <version>0.0.1-SNAPSHOT</version>
 
@@ -21,11 +21,6 @@
     Beangle Boot ToolKit
   </description>
 
-  <modules>
-    <module>artifact</module>
-    <module>launcher</module>
-  </modules>
-
   <dependencies>
     <dependency>
       <groupId>org.beangle.commons</groupId>
@@ -36,6 +31,11 @@
       <groupId>org.beangle.commons</groupId>
       <artifactId>beangle-commons-file_2.13</artifactId>
       <version>${beangle.commons.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+       <version>${commons.compress.version}</version>
     </dependency>
   </dependencies>
 </project>
