@@ -47,7 +47,7 @@ export beangle_commons_ver=5.2.0
 export beangle_template_ver=0.0.28
 export slf4j_ver=2.0.0-alpha1
 export logback_ver=1.3.0-alpha5
-export commons_compress_ver=1.18
+export commons_compress_ver=1.19
 export boot_ver=0.0.20
 
 download org.scala-lang scala-library $scala_ver
