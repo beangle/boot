@@ -7,7 +7,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.beangle.boot</groupId>
-  <artifactId>beangle-boot</artifactId>
+  <artifactId>beangle-boot_2.13</artifactId>
   <packaging>jar</packaging>
   <name>Beangle Boot Toolkit</name>
   <version>0.0.20</version>

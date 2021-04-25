@@ -34,6 +34,8 @@ object AppResolver extends DependencyResolver {
   val JarDependenciesFile = "/META-INF/beangle/dependencies"
   val WarDependenciesFile = "/WEB-INF/classes" + JarDependenciesFile
 
+  private val OldWarDependenciesFile = "/WEB-INF/classes/META-INF/beangle/container.dependencies"
+
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
       println("Usage:java org.beangle.boot.artifact.AppResolver artifact_file remote_url local_base")
@@ -68,11 +70,9 @@ object AppResolver extends DependencyResolver {
     if (file.endsWith(".war") || file.endsWith(".jar")) {
       val innerPath = if (file.endsWith(".war")) WarDependenciesFile else JarDependenciesFile
       val nestedUrl = new URL("jar:file:" + artifact.getAbsolutePath + "!" + innerPath)
-      try {
-        nestedUrl.openConnection.connect()
-        url = nestedUrl
-      } catch {
-        case _: Throwable =>
+      url = exists(nestedUrl)
+      if (null == url && file.endsWith(".war")) {
+        url = exists(new URL("jar:file:" + artifact.getAbsolutePath + "!" + OldWarDependenciesFile))
       }
     } else if (artifact.isDirectory) {
       val nestedFile = new File(file + WarDependenciesFile)
@@ -86,6 +86,15 @@ object AppResolver extends DependencyResolver {
       List.empty
     } else {
       resolve(url)
+    }
+  }
+
+  private def exists(url: URL): URL = {
+    try {
+      url.openConnection.connect()
+      url
+    } catch {
+      case _: Throwable => null
     }
   }
 
