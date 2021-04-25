@@ -10,7 +10,7 @@
   <artifactId>beangle-boot_2.13</artifactId>
   <packaging>jar</packaging>
   <name>Beangle Boot Toolkit</name>
-  <version>0.0.21</version>
+  <version>0.0.22-SNAPSHOT</version>
 
   <properties>
     <beangle.commons.version>5.2.1</beangle.commons.version>
