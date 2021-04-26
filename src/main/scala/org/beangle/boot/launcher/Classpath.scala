@@ -18,8 +18,9 @@
  */
 package org.beangle.boot.launcher
 
-import org.beangle.boot.artifact.AppResolver.{fetch, resolveArtifact}
-import org.beangle.boot.artifact.{Layout, Repo}
+import org.beangle.boot.artifact._
+import org.beangle.boot.dependency.AppResolver.{fetch, resolveArchive}
+import org.beangle.commons.collection.Collections
 
 import java.io.File
 import java.util.jar.JarFile
@@ -37,9 +38,16 @@ object Classpath {
 
     fetch(args(0), remoteRepo, localRepo, false) match {
       case Some(a) =>
-        val dependencies = resolveArtifact(a)
-        val entries = a.getAbsolutePath :: dependencies.map(x => localRepo.file(x)).toList
-        print(getMainClass(new JarFile(a)) + "@" + entries.mkString(File.pathSeparator))
+        val archives = resolveArchive(a)
+        val paths = Collections.newBuffer[String]
+        paths += a.getAbsolutePath
+        archives foreach {
+          case a: Artifact => paths += localRepo.file(a).getAbsolutePath
+          case LocalFile(n) => paths += n
+          case rf: RemoteFile => paths += rf.local(localRepo).getAbsolutePath
+          case d: Diff =>
+        }
+        print(getMainClass(new JarFile(a)) + "@" + paths.mkString(File.pathSeparator))
         System.exit(0)
       case None => System.exit(-1)
     }

@@ -18,7 +18,47 @@
  */
 package org.beangle.boot.artifact
 
-trait Product
+import org.beangle.commons.lang.Strings._
+import org.beangle.commons.lang.SystemInfo
+
+import java.io.File
+
+sealed trait Archive {
+  def url: String
+
+  override def toString: String = url
+}
+
+object Archive {
+  def apply(url: String): Archive = {
+    if (url.startsWith("http")) {
+      RemoteFile(url)
+    } else if (url.contains("/")) {
+      var file = url
+      if (file.startsWith("file://")) {
+        file = substringAfter(url, "file://")
+      }
+      if (file.startsWith("~")) {
+        file = replace(file, "~", SystemInfo.user.home)
+      }
+      var variable = substringBetween(file, "${", "}")
+      while (isNotEmpty(variable)) {
+        file = replace(file, "${" + variable + "}", SystemInfo.properties.getOrElse(variable, variable))
+        variable = substringBetween(file, "${", "}")
+      }
+      LocalFile(file)
+    } else {
+      if (url.startsWith("gav://")) {
+        Artifact(substringAfter(url, "gav://"))
+      } else {
+        Artifact(url)
+      }
+    }
+  }
+
+}
+
+trait RepoArchive extends Archive
 
 object Artifact {
   private val packagings =
@@ -55,7 +95,7 @@ object Artifact {
 
 case class Artifact(groupId: String, artifactId: String,
                     version: String, classifier: Option[String] = None, packaging: String = "jar")
-  extends Product {
+  extends RepoArchive {
 
   def packaging(newPackaing: String): Artifact = {
     Artifact(groupId, artifactId, version, classifier, newPackaing)
@@ -67,11 +107,6 @@ case class Artifact(groupId: String, artifactId: String,
 
   def sha1: Artifact = {
     Artifact(groupId, artifactId, version, classifier, packaging + ".sha1")
-  }
-
-  override def toString: String = {
-    groupId + ":" + artifactId + ":" + version + (if (classifier.isEmpty) "" else ":" + classifier.get) + ":" +
-      packaging
   }
 
   def forVersion(newVersion: String): Artifact = {
@@ -96,6 +131,12 @@ case class Artifact(groupId: String, artifactId: String,
     version.contains("SNAPSHOT")
   }
 
+  def url: String = {
+    classifier match {
+      case Some(c) => s"gav://$groupId:$artifactId:$packaging:$c:$version"
+      case None => s"gav://$groupId:$artifactId:$packaging:$version"
+    }
+  }
 }
 
 object Diff {
@@ -106,7 +147,7 @@ object Diff {
 
 case class Diff(groupId: String, artifactId: String,
                 oldVersion: String, newVersion: String, classifier: Option[String], packaging: String = "jar")
-  extends Product {
+  extends RepoArchive {
 
   def older: Artifact = {
     new Artifact(groupId, artifactId, oldVersion, classifier, packaging.replace(".diff", ""))
@@ -116,8 +157,30 @@ case class Diff(groupId: String, artifactId: String,
     new Artifact(groupId, artifactId, newVersion, classifier, packaging.replace(".diff", ""))
   }
 
-  override def toString: String = {
-    groupId + ":" + artifactId + ":" + oldVersion + "_" + newVersion + (if (classifier.isEmpty) "" else ":" + classifier.get) + ":" +
-      packaging
+  override def url: String = {
+    classifier match {
+      case Some(c) => s"$groupId:$artifactId:$packaging:$c:${oldVersion}_$newVersion"
+      case None => s"$groupId:$artifactId:$packaging:${oldVersion}_$newVersion"
+    }
+  }
+
+}
+
+case class LocalFile(file: String) extends Archive {
+  override def url: String = {
+    s"file://$file"
+  }
+}
+
+case class RemoteFile(url: String) extends Archive {
+
+  def local(localRepo: Repo.Local): File = {
+    var path = url
+    path = replace(path, "https://", "")
+    path = replace(path, "http://", "")
+    if (path.contains("?")) {
+      path = substringBefore(path, "?")
+    }
+    new File(localRepo.base + "/" + path)
   }
 }

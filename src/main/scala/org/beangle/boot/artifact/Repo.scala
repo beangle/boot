@@ -50,7 +50,7 @@ object Repo {
       exists(layout.path(a))
     }
 
-    def url(p: Product): String = {
+    def url(p: RepoArchive): String = {
       p match {
         case a: Artifact => base + layout.path(a)
         case d: Diff => base + layout.path(d)
@@ -74,12 +74,12 @@ object Repo {
       new File(base + filePath)
     }
 
-    def file(product: Product): File = {
-      new File(url(product))
+    def file(archive: RepoArchive): File = {
+      new File(url(archive))
     }
 
-    def remove(product: Product): Boolean = {
-      new File(url(product)).delete()
+    def remove(archive: RepoArchive): Boolean = {
+      new File(url(archive)).delete()
     }
 
     def verifySha1(artifact: Artifact): Option[Boolean] = {
@@ -118,7 +118,7 @@ object Repo {
         }
         val rs = versions.sorted
         if (rs.isEmpty) None
-        else Some(artifact.forVersion(rs(rs.size - 1)))
+        else Some(artifact.forVersion(rs.last))
       } else {
         None
       }

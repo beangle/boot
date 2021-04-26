@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.beangle.boot.artifact.downloader
+package org.beangle.boot.downloader
 
 import java.io.File
 import java.net.URL

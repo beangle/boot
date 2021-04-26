@@ -45,7 +45,7 @@ can be appended by jar plugin.
 
 ### Launch your jar
 
-    wget https://github.com/beangle/boot/src/main/scripts/launch.sh
+    wget https://github.com/beangle/boot/tree/main/src/main/scripts/launch.sh
     chmod +x launch.sh
-    launch.sh /path/to/your/project.jar
+    ./launch.sh /path/to/your/project.jar
 

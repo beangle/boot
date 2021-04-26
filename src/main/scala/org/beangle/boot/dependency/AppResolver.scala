@@ -16,23 +16,21 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.beangle.boot.artifact
+package org.beangle.boot.dependency
 
+import org.beangle.boot.artifact._
+import org.beangle.boot.downloader.DefaultDownloader
 import org.beangle.commons.collection.Collections
 
-import java.io.{File, InputStreamReader, LineNumberReader}
+import java.io.File
 import java.net.URL
-
-trait DependencyResolver {
-  def resolve(resource: URL): Iterable[Artifact]
-}
 
 /**
  * 可以解析一个war，一个文本文件或者一个war解压后的文件夹，或者一个gav字符串
  */
-object AppResolver extends DependencyResolver {
-  val JarDependenciesFile = "/META-INF/beangle/dependencies"
-  val WarDependenciesFile = "/WEB-INF/classes" + JarDependenciesFile
+object AppResolver {
+  private val JarDependenciesFile = "/META-INF/beangle/dependencies"
+  private val WarDependenciesFile = "/WEB-INF/classes" + JarDependenciesFile
 
   private val OldWarDependenciesFile = "/WEB-INF/classes/META-INF/beangle/container.dependencies"
 
@@ -59,7 +57,7 @@ object AppResolver extends DependencyResolver {
   /**
    * 可以解析一个war|jar，一个文本文件或者一个war解压后的文件夹
    */
-  def resolveArtifact(artifact: File): Iterable[Artifact] = {
+  def resolveArchive(artifact: File): Iterable[Archive] = {
     val file = artifact.getAbsolutePath
     if (!artifact.exists) {
       println(s"Cannot find $file")
@@ -85,7 +83,7 @@ object AppResolver extends DependencyResolver {
     if (null == url) {
       List.empty
     } else {
-      resolve(url)
+      DependencyResolver.resolve(url)
     }
   }
 
@@ -119,32 +117,26 @@ object AppResolver extends DependencyResolver {
     }
   }
 
-  def process(file: File, remoteRepo: Repo.Remote, localRepo: Repo.Local, verbose: Boolean = true)
-  : (Iterable[Artifact], Iterable[Artifact]) = {
-    val artifacts = resolveArtifact(file)
+  def process(file: File, remoteRepo: Repo.Remote,
+              localRepo: Repo.Local, verbose: Boolean = true): (Iterable[Archive], Iterable[Archive]) = {
+    val archives = resolveArchive(file)
+    val artifacts = Collections.newBuffer[Artifact]
+    val missing = Collections.newBuffer[Archive]
+
+    archives foreach {
+      case a: Artifact => artifacts += a
+      case lf@LocalFile(n) => if (!new File(n).exists) missing += lf
+      case rf@RemoteFile(u) =>
+        val localFile = rf.local(localRepo)
+        new DefaultDownloader("default", new URL(u), localFile).start()
+        if (!localFile.exists()) {
+          missing += rf
+        }
+      case d: Diff =>
+    }
+
     new ArtifactDownloader(remoteRepo, localRepo, verbose).download(artifacts)
-    val missing = artifacts filter (!localRepo.exists(_))
-    (artifacts, missing)
+    (archives, missing)
   }
 
-  override def resolve(resource: URL): Iterable[Artifact] = {
-    val artifacts = Collections.newBuffer[Artifact]
-    if (null == resource) return List.empty
-    try {
-      val reader = new InputStreamReader(resource.openStream())
-      val lr = new LineNumberReader(reader)
-      var line: String = null
-      do {
-        line = lr.readLine()
-        if (line != null && line.nonEmpty) {
-          val infos = line.split(":")
-          artifacts += new Artifact(infos(0), infos(1), infos(2))
-        }
-      } while (line != null)
-      lr.close()
-    } catch {
-      case e: Exception => e.printStackTrace()
-    }
-    artifacts
-  }
 }
