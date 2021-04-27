@@ -33,7 +33,13 @@ object Archive {
   def apply(url: String): Archive = {
     if (url.startsWith("http")) {
       RemoteFile(url)
-    } else if (url.contains("/")) {
+    } else if (url.startsWith("gav://") || !url.contains("/")) {
+      if (url.startsWith("gav://")) {
+        Artifact(substringAfter(url, "gav://"))
+      } else {
+        Artifact(url)
+      }
+    } else {
       var file = url
       if (file.startsWith("file://")) {
         file = substringAfter(url, "file://")
@@ -47,15 +53,8 @@ object Archive {
         variable = substringBetween(file, "${", "}")
       }
       LocalFile(file)
-    } else {
-      if (url.startsWith("gav://")) {
-        Artifact(substringAfter(url, "gav://"))
-      } else {
-        Artifact(url)
-      }
     }
   }
-
 }
 
 trait RepoArchive extends Archive
@@ -87,8 +86,10 @@ object Artifact {
       new Artifact(infos(0), infos(1), version, classifier, packaging)
     } else if (infos.length == 5) {
       new Artifact(infos(0), infos(1), infos(4), Some(infos(3)), infos(2))
-    } else {
+    } else if (infos.length == 3) {
       new Artifact(infos(0), infos(1), infos(2), None, "jar")
+    } else {
+      throw new RuntimeException("Cannot recoganize artifact format " + gav)
     }
   }
 }

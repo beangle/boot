@@ -16,16 +16,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.beangle.boot.artifact
+package org.beangle.boot.downloader
 
-import org.beangle.boot.artifact.downloader.DefaultDownloader
-
-import java.io.File
-import java.net.URL
 import org.junit.runner.RunWith
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
+
+import java.io.File
+import java.net.URL
 
 
 @RunWith(classOf[JUnitRunner])

@@ -18,7 +18,7 @@
  */
 package org.beangle.boot.artifact
 
-import org.beangle.boot.artifact.downloader.RangeDownloader
+import org.beangle.boot.downloader.RangeDownloader
 
 import java.io.File
 

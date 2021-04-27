@@ -14,14 +14,20 @@ if [ -z "$M2_REPO" ]; then
   export M2_REPO="$HOME/.m2/repository"
 fi
 
+# launch classpath
 bootpath=""
+# full command line to java
+opts="$*"
+# jar file
+jarfile=""
+
 # download groupId artifactId version
 download(){
-  local group_id=`echo "$1" | tr . /`
-  local URL="$M2_REMOTE_REPO/$group_id/$2/$3/$2-$3.jar"
-  local artifact_name="$2-$3.jar"
-  local local_file="$M2_REPO/$group_id/$2/$3/$2-$3.jar"
-  bootpath+=":"$local_file
+  group_id=`echo "$1" | tr . /`
+  URL="$M2_REMOTE_REPO/$group_id/$2/$3/$2-$3.jar"
+  artifact_name="$2-$3.jar"
+  local_file="$M2_REPO/$group_id/$2/$3/$2-$3.jar"
+  bootpath=$bootpath":"$local_file
 
   if [ ! -f $local_file ]; then
     if wget --spider $URL 2>/dev/null; then
@@ -42,13 +48,49 @@ download(){
   fi
 }
 
+export_extra_classpath() {
+  classpath_prefix="-cp"
+  classpath_extra=$(echo "$*" | sed 's/^.*-cp \(\S*\) .*$/\1/')
+  if [ "$*" = "$classpath_extra" ]; then
+    classpath_prefix="-classpath"
+    classpath_extra=$(echo "$*" | sed 's/^.*-classpath \(\S*\) .*$/\1/')
+  fi
+  if [ "$*" = "$classpath_extra" ]; then
+    classpath_prefix="--class-path"
+    classpath_extra=$(echo "$*" | sed 's/^.*--class-path \(\S*\) .*$/\1/')
+  fi
+
+  if [ "$*" != "$classpath_extra" ]; then
+    classpath_str="$classpath_prefix $classpath_extra"
+    export classpath_extra
+    opts="${opts#*"$classpath_str"}"
+  fi
+}
+
+  #find jarfile in opts
+detect_jarfile(){
+  for arg in $opts
+  do
+      if [ "$arg" = "${arg#"-"}" ]; then
+        jarfile="$arg"
+        break;
+      fi
+  done
+
+  # try to find jar file
+  if [ -z "$jarfile" ]; then
+    echo "Cannot find jar file in args,launch was aborted."
+    exit
+  fi
+}
+
 export scala_ver=2.13.3
 export beangle_commons_ver=5.2.0
 export beangle_template_ver=0.0.28
 export slf4j_ver=2.0.0-alpha1
 export logback_ver=1.3.0-alpha5
 export commons_compress_ver=1.19
-export boot_ver=0.0.20
+export boot_ver=0.0.22-SNAPSHOT
 
 download org.scala-lang scala-library $scala_ver
 download org.scala-lang scala-reflect $scala_ver
@@ -60,26 +102,20 @@ download org.slf4j slf4j-api $slf4j_ver
 download ch.qos.logback logback-core $logback_ver
 download ch.qos.logback logback-classic $logback_ver
 
-jarfile=""
-for arg in "$@"
-do
-    if [ "$arg" != "${arg#*"_"}" ]; then
-      jarfile="$arg"
-      break;
-    fi
-done
-
-opts="$@"
+export_extra_classpath "$opts"
+detect_jarfile
+#get options and args of java program
 args="${opts#*$jarfile}"
 options="${opts%%$jarfile*}"
-
-java -cp "${bootpath:1}" org.beangle.boot.artifact.AppResolver $jarfile $M2_REMOTE_REPO $M2_REPO
 info=`java -cp "${bootpath:1}" org.beangle.boot.launcher.Classpath $jarfile $M2_REPO`
 if [ $? = 0 ]; then
   mainclass="${info%@*}"
   classpath="${info#*@}"
-  #echo java -cp "$classpath" $options $mainclass $args
-  java -cp "$classpath" $options $mainclass $args
+  if [ "cannot.find.mainclass" = "$mainclass" ]; then
+    echo "Cannot find Main-Class in MANIFEST.MF of $jarfile"
+  else
+    java -cp "$classpath" $options "$mainclass" $args
+  fi
 else
    echo $info
 fi

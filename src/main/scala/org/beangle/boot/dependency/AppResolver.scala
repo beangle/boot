@@ -34,6 +34,10 @@ object AppResolver {
 
   private val OldWarDependenciesFile = "/WEB-INF/classes/META-INF/beangle/container.dependencies"
 
+  def isApp(file: String): Boolean = {
+    file.endsWith(".war") || file.endsWith(".jar")
+  }
+
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
       println("Usage:java org.beangle.boot.artifact.AppResolver artifact_file remote_url local_base")
@@ -60,12 +64,12 @@ object AppResolver {
   def resolveArchive(artifact: File): Iterable[Archive] = {
     val file = artifact.getAbsolutePath
     if (!artifact.exists) {
-      println(s"Cannot find $file")
+      println(s"Cannot find file $file")
       return List.empty
     }
 
     var url: URL = null
-    if (file.endsWith(".war") || file.endsWith(".jar")) {
+    if (isApp(file)) {
       val innerPath = if (file.endsWith(".war")) WarDependenciesFile else JarDependenciesFile
       val nestedUrl = new URL("jar:file:" + artifact.getAbsolutePath + "!" + innerPath)
       url = exists(nestedUrl)
@@ -106,7 +110,7 @@ object AppResolver {
       } else {
         Some(new File(localRepo.file(war).getAbsolutePath))
       }
-    } else {
+    } else if (isApp(file)) {
       val localFile = new File(file)
       if (localFile.exists) {
         Some(localFile)
@@ -114,6 +118,8 @@ object AppResolver {
         if (verbose) println(s"Cannot find $file")
         None
       }
+    } else {
+      throw new RuntimeException("Cannot launch app " + file)
     }
   }
 

@@ -49,3 +49,13 @@ can be appended by jar plugin.
     chmod +x launch.sh
     ./launch.sh /path/to/your/project.jar
 
+   To append additional library to object jar's classpath,using format:
+
+    ./launch.sh -cp "/path/to/lib/*" /path/to/your/project.jar
+
+   Specify properties using -Dxx=vv
+
+    ./launch.sh -cp "/path/to/lib/*" -Dk1=v1 -Dk2=v2  /path/to/your/project.jar arg1 arg2
+
+   The difference with java command is that `-jar` option is ommited.
+
