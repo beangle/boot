@@ -16,26 +16,26 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.beangle.boot.artifact
+package org.beangle.boot.downloader
 
-import java.io.File
-import java.util.zip.ZipFile
+import java.util.concurrent.atomic.AtomicLong
+import java.net.URL
 
-object War {
-  def isLibEmpty(path: String): Boolean = {
-    val file = new File(path)
-    if (file.exists()) {
-      val war = new ZipFile(file)
-      val entries = war.entries()
-      var finded = false
-      while (entries.hasMoreElements && !finded) {
-        val entry = entries.nextElement().getName
-        finded = (entry.startsWith("WEB-INF/lib/") && entry.endsWith(".jar"))
-      }
-      !finded
-    } else {
-      throw new RuntimeException(s"Cannot find war file located at $path")
-    }
+object Downloader {
+  class Status(var total: Long) {
+    val count = new AtomicLong(0)
   }
 }
 
+trait Downloader {
+
+  def url: URL
+
+  def start(): Unit
+
+  def downloaded: Long
+
+  def contentLength: Long
+
+  def name: String
+}

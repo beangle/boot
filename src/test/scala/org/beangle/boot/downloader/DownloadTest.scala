@@ -16,26 +16,28 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.beangle.boot.artifact.downloader
+package org.beangle.boot.downloader
 
-import java.util.concurrent.atomic.AtomicLong
+import org.junit.runner.RunWith
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.junit.JUnitRunner
+
+import java.io.File
 import java.net.URL
 
-object Downloader {
-  class Status(var total: Long) {
-    val count = new AtomicLong(0)
+
+@RunWith(classOf[JUnitRunner])
+class DownloadTest extends AnyFunSpec with Matchers {
+  describe("download missing") {
+    it("download missing") {
+      val location = File.createTempFile("ant", "jar")
+      val errorUrl = "https://maven.aliyun.com/nexus/content/groups/public/ant/ant/1.5.4/ant-1.5.4_1.5.3.jar.diff"
+
+      location.delete()
+      val downloader = new DefaultDownloader("1", new URL(errorUrl), location)
+      println(location)
+      downloader.start()
+    }
   }
-}
-
-trait Downloader {
-
-  def url: URL
-
-  def start(): Unit
-
-  def downloaded: Long
-
-  def contentLength: Long
-
-  def name: String
 }

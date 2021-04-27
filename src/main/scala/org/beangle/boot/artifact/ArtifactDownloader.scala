@@ -18,8 +18,8 @@
  */
 package org.beangle.boot.artifact
 
-import org.beangle.boot.artifact.downloader.{Downloader, RangeDownloader}
 import org.beangle.boot.artifact.util.{Delta, FileSize}
+import org.beangle.boot.downloader.{Downloader, RangeDownloader}
 import org.beangle.commons.codec.binary.Base64
 import org.beangle.commons.collection.Collections
 
@@ -41,7 +41,6 @@ object ArtifactDownloader {
   def apply(remote: String, base: String = null, verbose: Boolean = true): ArtifactDownloader = {
     new ArtifactDownloader(Repo.remote(remote), Repo.local(base), verbose)
   }
-
   val DiffSupports = Set("zip", "war", "jar", "ear")
 }
 
@@ -120,7 +119,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     }
   }
 
-  private def doDownload(products: Iterable[Product], executor: ExecutorService, statuses: ConcurrentHashMap[URL, Downloader]): Unit = {
+  private def doDownload(products: Iterable[RepoArchive], executor: ExecutorService, statuses: ConcurrentHashMap[URL, Downloader]): Unit = {
     if (products.size <= 0) return
     var idx = 1
     for (artifact <- products) {

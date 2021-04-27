@@ -16,29 +16,32 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.beangle.boot.artifact
+package org.beangle.boot.dependency
 
-import org.beangle.boot.artifact.downloader.DefaultDownloader
+import org.beangle.boot.artifact.Archive
+import org.beangle.commons.collection.Collections
 
-import java.io.File
+import java.io.{InputStreamReader, LineNumberReader}
 import java.net.URL
-import org.junit.runner.RunWith
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers
-import org.scalatestplus.junit.JUnitRunner
 
-
-@RunWith(classOf[JUnitRunner])
-class DownloadTest extends AnyFunSpec with Matchers {
-  describe("download missing") {
-    it("download missing") {
-      val location = File.createTempFile("ant", "jar")
-      val errorUrl = "https://maven.aliyun.com/nexus/content/groups/public/ant/ant/1.5.4/ant-1.5.4_1.5.3.jar.diff"
-
-      location.delete()
-      val downloader = new DefaultDownloader("1", new URL(errorUrl), location)
-      println(location)
-      downloader.start()
+object DependencyResolver {
+  def resolve(resource: URL): Iterable[Archive] = {
+    val archives = Collections.newBuffer[Archive]
+    if (null == resource) return List.empty
+    try {
+      val reader = new InputStreamReader(resource.openStream())
+      val lr = new LineNumberReader(reader)
+      var line: String = null
+      do {
+        line = lr.readLine()
+        if (line != null && line.nonEmpty) {
+          archives += Archive(line)
+        }
+      } while (line != null)
+      lr.close()
+    } catch {
+      case e: Exception => e.printStackTrace()
     }
+    archives
   }
 }
