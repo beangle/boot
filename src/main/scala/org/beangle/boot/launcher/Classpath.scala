@@ -50,7 +50,7 @@ object Classpath {
         }
         val extra = System.getenv("classpath_extra")
         if (Strings.isNotEmpty(extra)) {
-          paths += extra
+          paths.prepend(extra)
         }
         print(getMainClass(new JarFile(a)) + "@" + paths.mkString(File.pathSeparator))
         System.exit(0)
