@@ -84,13 +84,12 @@ detect_jarfile(){
   fi
 }
 
-export scala_ver=2.13.3
-export beangle_commons_ver=5.2.0
-export beangle_template_ver=0.0.28
+export scala_ver=2.13.5
+export beangle_commons_ver=5.2.2
 export slf4j_ver=2.0.0-alpha1
 export logback_ver=1.3.0-alpha5
 export commons_compress_ver=1.19
-export boot_ver=0.0.22
+export boot_ver=0.0.23
 
 download org.scala-lang scala-library $scala_ver
 download org.scala-lang scala-reflect $scala_ver
@@ -107,6 +106,7 @@ detect_jarfile
 #get options and args of java program
 args="${opts#*$jarfile}"
 options="${opts%%$jarfile*}"
+java -cp "${bootpath:1}" org.beangle.boot.dependency.AppResolver $jarfile $M2_REMOTE_REPO $M2_REPO
 info=`java -cp "${bootpath:1}" org.beangle.boot.launcher.Classpath $jarfile $M2_REPO`
 if [ $? = 0 ]; then
   mainclass="${info%@*}"
