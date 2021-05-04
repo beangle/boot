@@ -25,14 +25,14 @@ import org.beangle.commons.net.http.HttpUtils
 
 class DefaultDownloader(id: String, url: URL, location: File) extends AbstractDownloader(id, url, location) {
   protected override def downloading(): Unit = {
-    val urlStatus = access()
+    val urlStatus = HttpUtils.access(this.url)
     if (urlStatus.length < 0) {
-      println("\r" + HttpUtils.toString(urlStatus.status) + " " + url)
+      println("\r" + HttpUtils.toString(urlStatus.status) + " " + this.url)
       return
     }
     if (verbose) {
-      println("Downloading " + url)
+      println("Downloading " + this.url)
     }
-    super.defaultDownloading(url.openConnection())
+    super.defaultDownloading(this.url.openConnection())
   }
 }

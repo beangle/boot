@@ -13,7 +13,7 @@
   <version>0.0.24-SNAPSHOT</version>
 
   <properties>
-    <beangle.commons.version>5.2.2</beangle.commons.version>
+    <beangle.commons.version>5.2.3-SNAPSHOT</beangle.commons.version>
     <commons.compress.version>1.19</commons.compress.version>
   </properties>
 

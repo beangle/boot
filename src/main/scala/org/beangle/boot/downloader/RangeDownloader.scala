@@ -54,9 +54,9 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
   }
 
   protected override def downloading(): Unit = {
-    val urlStatus = access()
+    val urlStatus = HttpUtils.access(this.url)
     if (urlStatus.length < 0) {
-      println("\r" + HttpUtils.toString(urlStatus.status) + " " + url)
+      println("\r" + HttpUtils.toString(urlStatus.status) + " " + this.url)
       return
     }
     //小于1M的普通下载
@@ -65,11 +65,11 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
       super.defaultDownloading(urlStatus.target.openConnection)
       return
     } else {
-      if (verbose) println("\nRange-Downloading " + url)
+      if (verbose) println("\nRange-Downloading " + this.url)
     }
     this.status = new Downloader.Status(urlStatus.length)
     if (this.status.total > java.lang.Integer.MAX_VALUE) {
-      throw new RuntimeException(s"Cannot download $url with size ${this.status.total}")
+      throw new RuntimeException(s"Cannot download ${this.url} with size ${this.status.total}")
     }
 
     var lastModified: Long = urlStatus.lastModified
@@ -85,7 +85,7 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
     steps foreach { seg =>
       val start = seg._1
       val end = seg._2
-      val part = new File(location.getCanonicalPath + s".part_${start}_${end}")
+      val part = new File(location.getCanonicalPath + s".part_${start}_$end")
       parts += part
       tasks.add(() => {
         var input: InputStream = null
