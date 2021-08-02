@@ -14,7 +14,7 @@
 
   <properties>
     <beangle.commons.version>5.2.2</beangle.commons.version>
-    <commons.compress.version>1.19</commons.compress.version>
+    <commons.compress.version>1.21</commons.compress.version>
   </properties>
 
   <description>
