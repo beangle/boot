@@ -22,12 +22,9 @@ import java.io.File
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.Dirs
 import org.beangle.commons.lang.SystemInfo
-import org.junit.runner.RunWith
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatestplus.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class ArtifactDownloaderTest extends AnyFunSpec with Matchers {
 
   val tempLocalRepo = new File(SystemInfo.tmpDir + "/.m2/repository")

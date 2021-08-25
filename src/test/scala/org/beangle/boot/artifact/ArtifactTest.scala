@@ -20,12 +20,9 @@ package org.beangle.boot.artifact
 import java.io.File
 
 import org.beangle.commons.lang.SystemInfo
-import org.junit.runner.RunWith
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatestplus.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class ArtifactTest extends AnyFunSpec with Matchers {
   val older = Artifact("org.beangle.commons", "beangle-commons-core_2.12", "4.6.1", Some("sources"))
   val artifact = Artifact("org.beangle.commons", "beangle-commons-core_2.12", "4.6.2", Some("sources"))

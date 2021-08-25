@@ -17,12 +17,9 @@
 
 package org.beangle.boot.artifact
 
-import org.junit.runner.RunWith
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatestplus.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class RepoTest extends AnyFunSpec with Matchers {
 
   describe("Local repo") {

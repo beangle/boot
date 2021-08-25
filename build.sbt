@@ -29,5 +29,5 @@ lazy val root = (project in file("."))
   .settings(
     name := "beangle-boot",
     common,
-    libraryDependencies ++=   Seq(beangle_commons_core,beangle_commons_file,apache_commons_compress)
+    libraryDependencies ++=   Seq(scalatest,beangle_commons_core,beangle_commons_file,apache_commons_compress)
   )

@@ -17,16 +17,12 @@
 
 package org.beangle.boot.downloader
 
-import org.junit.runner.RunWith
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatestplus.junit.JUnitRunner
 
 import java.io.File
 import java.net.URL
 
-
-@RunWith(classOf[JUnitRunner])
 class DownloadTest extends AnyFunSpec with Matchers {
   describe("download missing") {
     it("download missing") {
