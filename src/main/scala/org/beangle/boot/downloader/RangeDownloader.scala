@@ -1,21 +1,20 @@
 /*
- * Beangle, Agile Development Scaffold and Toolkits.
- *
- * Copyright © 2005, The Beangle Software.
+ * Copyright (C) 2005, The Beangle Software.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.beangle.boot.downloader
 
 import java.io._
@@ -54,9 +53,9 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
   }
 
   protected override def downloading(): Unit = {
-    val urlStatus = access()
+    val urlStatus = HttpUtils.access(this.url)
     if (urlStatus.length < 0) {
-      println("\r" + HttpUtils.toString(urlStatus.status) + " " + url)
+      println("\r" + HttpUtils.toString(urlStatus.status) + " " + this.url)
       return
     }
     //小于1M的普通下载
@@ -65,11 +64,11 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
       super.defaultDownloading(urlStatus.target.openConnection)
       return
     } else {
-      if (verbose) println("\nRange-Downloading " + url)
+      if (verbose) println("\nRange-Downloading " + this.url)
     }
     this.status = new Downloader.Status(urlStatus.length)
     if (this.status.total > java.lang.Integer.MAX_VALUE) {
-      throw new RuntimeException(s"Cannot download $url with size ${this.status.total}")
+      throw new RuntimeException(s"Cannot download ${this.url} with size ${this.status.total}")
     }
 
     var lastModified: Long = urlStatus.lastModified
@@ -85,7 +84,7 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
     steps foreach { seg =>
       val start = seg._1
       val end = seg._2
-      val part = new File(location.getCanonicalPath + s".part_${start}_${end}")
+      val part = new File(location.getCanonicalPath + s".part_${start}_$end")
       parts += part
       tasks.add(() => {
         var input: InputStream = null

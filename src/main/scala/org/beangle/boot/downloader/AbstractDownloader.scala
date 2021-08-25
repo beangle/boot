@@ -1,30 +1,27 @@
 /*
- * Beangle, Agile Development Scaffold and Toolkits.
- *
- * Copyright © 2005, The Beangle Software.
+ * Copyright (C) 2005, The Beangle Software.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.beangle.boot.downloader
 
 import org.beangle.boot.artifact.util.FileSize
 
 import java.io.{File, FileOutputStream, InputStream, OutputStream}
-import java.net.HttpURLConnection.HTTP_OK
-import java.net.{HttpURLConnection, URL, URLConnection}
+import java.net.{URL, URLConnection}
 import org.beangle.commons.io.IOs
-import org.beangle.commons.net.http.HttpUtils
 import org.beangle.commons.net.http.HttpUtils.followRedirect
 
 abstract class AbstractDownloader(val name: String, val url: URL, protected val location: File) extends Downloader {
@@ -49,17 +46,6 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
   }
 
   protected def downloading(): Unit
-
-  protected def access(): ResourceStatus = {
-    val hc = HttpUtils.followRedirect(this.url.openConnection(), "HEAD")
-    val rc = hc.asInstanceOf[HttpURLConnection].getResponseCode
-    rc match {
-      case HTTP_OK =>
-        val supportRange = "bytes" == hc.getHeaderField("Accept-Ranges")
-        ResourceStatus(rc, hc.getURL, hc.getHeaderFieldLong("Content-Length", 0), hc.getLastModified, supportRange)
-      case _ => ResourceStatus(rc, hc.getURL, -1, -1, supportRange = false)
-    }
-  }
 
   protected def finish(url: URL, elaps: Long): Unit = {
     if (verbose) {
