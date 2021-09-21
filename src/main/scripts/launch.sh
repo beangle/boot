@@ -48,7 +48,9 @@ download(){
   fi
 }
 
+# extra classpath_extra,it will be joined in Classpath program output
 export_extra_classpath() {
+  ## try extra classpath in options(--cp, -classpath,-class-path)
   classpath_prefix="-cp"
   classpath_extra=$(echo "$*" | sed 's/^.*-cp \(\S*\) .*$/\1/')
   if [ "$*" = "$classpath_extra" ]; then
@@ -67,7 +69,7 @@ export_extra_classpath() {
   fi
 }
 
-  #find jarfile in opts
+#find jarfile in opts
 detect_jarfile(){
   for arg in $opts
   do
@@ -106,9 +108,15 @@ download ch.qos.logback logback-classic $logback_ver
 export_extra_classpath "$opts"
 detect_jarfile
 #get options and args of java program
-args="${opts#*$jarfile}"
-options="${opts%%$jarfile*}"
+args="${opts#*$jarfile}" #parts after jarfile
+options="${opts%%$jarfile*}" #parts before jarfile
 java -cp "${bootpath:1}" org.beangle.boot.dependency.AppResolver $jarfile $M2_REMOTE_REPO $M2_REPO
+
+if [ $? -ne 0  ]; then
+  echo "Cannot resolve $jarfile, Launching aborted"
+  exit
+fi
+
 info=`java -cp "${bootpath:1}" org.beangle.boot.launcher.Classpath $jarfile $M2_REPO`
 
 if [ $? = 0 ]; then
