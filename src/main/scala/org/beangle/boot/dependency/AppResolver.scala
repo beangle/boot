@@ -17,7 +17,7 @@
 
 package org.beangle.boot.dependency
 
-import org.beangle.boot.artifact._
+import org.beangle.boot.artifact.*
 import org.beangle.boot.downloader.DefaultDownloader
 import org.beangle.commons.collection.Collections
 
@@ -49,11 +49,20 @@ object AppResolver {
 
     val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
     val localRepo = new Repo.Local(local)
-    fetch(args(0), remoteRepo, localRepo) foreach { a =>
+    val dest = fetch(args(0), remoteRepo, localRepo)
+    var missingSize = 0
+    dest foreach { a =>
       val (all, missing) = process(a, remoteRepo, localRepo)
       if (missing.nonEmpty) {
-        println("Download error :" + missing)
+        missingSize = missing.size
+        Console.err.println("Download error :" + missing)
       }
+    }
+    if (dest.isEmpty || missingSize > 0) {
+      System.exit(1)
+    } else {
+      println(dest.get.getAbsolutePath);
+      System.exit(0)
     }
   }
 
