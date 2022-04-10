@@ -146,7 +146,7 @@ object AppResolver {
         if (!localFile.exists()) {
           missing += rf
         }
-      case d: Diff =>
+      case _ =>
     }
 
     new ArtifactDownloader(remoteRepo, localRepo, verbose).download(artifacts)
