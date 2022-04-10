@@ -17,7 +17,7 @@
 
 package org.beangle.boot.launcher
 
-import org.beangle.boot.artifact._
+import org.beangle.boot.artifact.*
 import org.beangle.boot.dependency.AppResolver.{fetch, resolveArchive}
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.lang.Strings
@@ -45,7 +45,7 @@ object Classpath {
           case a: Artifact => paths += localRepo.file(a).getAbsolutePath
           case LocalFile(n) => paths += n
           case rf: RemoteFile => paths += rf.local(localRepo).getAbsolutePath
-          case d: Diff =>
+          case _ =>
         }
         val extra = System.getenv("classpath_extra")
         if (Strings.isNotEmpty(extra)) {
