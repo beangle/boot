@@ -18,13 +18,14 @@
 package org.beangle.boot.artifact
 
 import org.beangle.boot.artifact.util.Delta
-
-import java.io.{File, FileInputStream}
-import java.net.{HttpURLConnection, URL}
 import org.beangle.commons.collection.Collections
+import org.beangle.commons.io.Files./
 import org.beangle.commons.io.IOs
 import org.beangle.commons.lang.Charsets
 import org.beangle.commons.net.http.HttpUtils
+
+import java.io.{File, FileInputStream}
+import java.net.{HttpURLConnection, URL}
 
 object Repo {
 
@@ -83,13 +84,7 @@ object Repo {
 
     def verifySha1(artifact: Artifact): Option[Boolean] = {
       val sha1 = artifact.sha1
-      if (exists(artifact) && exists(sha1)) {
-        val sha1sum = Delta.sha1(url(artifact))
-        val sha1inFile = IOs.readString(new FileInputStream(url(sha1)), Charsets.UTF_8).trim()
-        Some(sha1inFile.contains(sha1sum))
-      } else {
-        None
-      }
+      if exists(artifact) && exists(sha1) then Some(Delta.verifySha1(url(artifact), url(sha1))) else None
     }
 
     def lastestBefore(artifact: Artifact): Option[Artifact] = {
@@ -181,14 +176,14 @@ object Repo {
   private def findLocalBase(layout: Layout, base: String): String = {
     if (null == base) {
       if (layout == Layout.Maven2) {
-        System.getProperty("user.home") + "/.m2/repository"
+        System.getProperty("user.home") + / + ".m2" + / + "repository"
       } else if (layout == Layout.Ivy2) {
-        System.getProperty("user.home") + "/.ivy2/cache"
+        System.getProperty("user.home") + / + ".ivy2" + / + "cache"
       } else {
         throw new RuntimeException("Do not support layout $layout,Using maven2 or ivy2")
       }
     } else {
-      if (base.endsWith("/")) base.substring(0, base.length - 1) else base
+      if (base.endsWith(/)) base.substring(0, base.length - 1) else base
     }
   }
 

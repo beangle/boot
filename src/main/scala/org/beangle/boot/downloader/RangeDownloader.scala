@@ -17,15 +17,14 @@
 
 package org.beangle.boot.downloader
 
-import java.io._
-import java.net.{HttpURLConnection, URL}
-import java.util.concurrent.{Callable, ExecutorService, Executors}
-
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.IOs
 import org.beangle.commons.lang.Strings
 import org.beangle.commons.net.http.HttpUtils
 
+import java.io.*
+import java.net.{HttpURLConnection, URL}
+import java.util.concurrent.{Callable, ExecutorService, Executors}
 import scala.collection.mutable
 
 object RangeDownloader {
@@ -38,7 +37,7 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
 
   var threads: Int = 10
 
-  var executor: ExecutorService = Executors.newFixedThreadPool(threads)
+  private var executor: ExecutorService = _
 
   private val properties = Collections.newMap[String, String]
 
@@ -53,25 +52,25 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
   }
 
   protected override def downloading(): Unit = {
-    val urlStatus = HttpUtils.access(this.url)
+    val urlStatus = Detector.access(this.url)
     if (urlStatus.length < 0) {
-      println("\r" + HttpUtils.toString(urlStatus.status) + " " + this.url)
       return
     }
     //小于1M的普通下载
     if (urlStatus.length <= 1024 * 1024 || !urlStatus.supportRange) {
-      if (verbose) println("\nDownloading " + urlStatus.target + "[" + urlStatus.length + "b]")
+      if (verbose) println("\rDownloading " + urlStatus.target + "[" + urlStatus.length + "b]")
       super.defaultDownloading(urlStatus.target.openConnection)
       return
     } else {
-      if (verbose) println("\nRange-Downloading " + this.url)
+      if (verbose) println("\rRange-Downloading " + this.url)
     }
     this.status = new Downloader.Status(urlStatus.length)
     if (this.status.total > java.lang.Integer.MAX_VALUE) {
       throw new RuntimeException(s"Cannot download ${this.url} with size ${this.status.total}")
     }
 
-    var lastModified: Long = urlStatus.lastModified
+    var lastModified = urlStatus.lastModified
+    executor = Executors.newFixedThreadPool(threads)
     val tasks = new java.util.ArrayList[Callable[Unit]]
     val parts = new mutable.ArrayBuffer[File]
     val steps = Array.ofDim[(Long, Long)](threads)

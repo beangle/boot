@@ -17,10 +17,14 @@
 
 package org.beangle.boot.artifact.util
 
-import java.io.{BufferedReader, File, InputStreamReader}
-
+import org.beangle.commons.codec.binary.Hex
+import org.beangle.commons.codec.digest.Digests
 import org.beangle.commons.file.diff.Bsdiff
-import org.beangle.commons.lang.Strings
+import org.beangle.commons.io.IOs
+import org.beangle.commons.lang.{Charsets, Strings}
+
+import java.io.{BufferedReader, File, FileInputStream, InputStreamReader}
+import java.security.MessageDigest
 
 object Delta {
 
@@ -33,36 +37,22 @@ object Delta {
   }
 
   def sha1(fileLoc: String): String = {
-    //windows下执行的有反斜线
-    var rs = exec("sha1sum", fileLoc)
-    rs = Strings.replace(rs, "\\", "")
-    //sha1出来的内容往往是 带有文件名,这是过滤摘要后面的文件名
-    val spaceIdx = rs.indexOf(' ')
-    if (-1 == spaceIdx) rs.trim
-    else rs.substring(0, spaceIdx).trim
-  }
-
-  private def exec(command: String, args: String*): String = {
-    try {
-      val arguments = new collection.mutable.ArrayBuffer[String]
-      arguments += command
-      arguments ++= args
-
-      val pb = new ProcessBuilder(arguments.toSeq: _*)
-      pb.redirectErrorStream(true)
-      val pro = pb.start()
-      pro.waitFor()
-      val reader = new BufferedReader(new InputStreamReader(pro.getInputStream))
-      val sb = new StringBuilder()
-      var line = reader.readLine()
-      while (line != null) {
-        sb.append(line).append('\n')
-        line = reader.readLine()
-      }
-      reader.close()
-      sb.toString
-    } catch {
-      case e: Throwable => throw new RuntimeException(e)
+    val crypt =MessageDigest.getInstance("SHA-1")
+    val input = new FileInputStream(fileLoc)
+    val buffer = new Array[Byte](4 * 1024)
+    var n = input.read(buffer)
+    while (-1 != n) {
+      crypt.update(buffer, 0, n)
+      n = input.read(buffer)
     }
+    IOs.close(input)
+    Hex.encode(crypt.digest(), true)
   }
+
+  def verifySha1(fileLoc: String, sha1File: String): Boolean = {
+    val sha1inFile = IOs.readString(new FileInputStream(sha1File), Charsets.UTF_8).trim().toLowerCase()
+    val sha1Calculated = sha1(fileLoc)
+    sha1inFile.contains(sha1Calculated)
+  }
+
 }
