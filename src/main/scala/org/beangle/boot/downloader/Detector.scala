@@ -17,18 +17,27 @@
 
 package org.beangle.boot.downloader
 
-import org.beangle.commons.net.http.HttpUtils
+import org.beangle.commons.net.http.{HttpUtils, ResourceStatus}
 
-import java.io.File
 import java.net.URL
 
-class DefaultDownloader(id: String, url: URL, location: File) extends AbstractDownloader(id, url, location) {
-  protected override def downloading(): Unit = {
-    val urlStatus = Detector.access(this.url)
-    if (urlStatus.length < 0) {
-      return
+object Detector {
+
+  def access(url: URL): ResourceStatus = {
+    val urlStatus = HttpUtils.access(url)
+    if urlStatus.length < 0 then
+      if !url.toString.endsWith(".diff") then println("\r" + HttpUtils.toString(urlStatus.status) + " " + url)
+    end if
+    urlStatus
+  }
+
+  def tryOpen(url: URL): URL = {
+    try {
+      val conn = url.openConnection
+      conn.connect()
+      url
+    } catch {
+      case _: Throwable => null
     }
-    if verbose then println("\rDownloading " + this.url)
-    super.defaultDownloading(this.url.openConnection())
   }
 }

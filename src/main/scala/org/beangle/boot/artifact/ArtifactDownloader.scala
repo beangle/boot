@@ -26,6 +26,7 @@ import java.io.IOException
 import java.net.URL
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService, Executors}
 import scala.jdk.javaapi.CollectionConverters.asScala
+import ArtifactDownloader.*
 
 /**
  * ArtifactDownloader
@@ -40,6 +41,7 @@ object ArtifactDownloader {
   def apply(remote: String, base: String = null, verbose: Boolean = true): ArtifactDownloader = {
     new ArtifactDownloader(Repo.remote(remote), Repo.local(base), verbose)
   }
+
   val DiffSupports = Set("zip", "war", "jar", "ear")
 }
 
@@ -63,11 +65,9 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     for (artifact <- artifacts if !artifact.isSnapshot) {
       if (!artifact.packaging.endsWith("sha1")) {
         val sha1 = artifact.sha1
-        if (!local.file(sha1).exists()) {
-          sha1s += sha1
-        }
+        if !local.file(sha1).exists() then sha1s += sha1
       }
-      if (!local.file(artifact).exists && ArtifactDownloader.DiffSupports.contains(artifact.packaging)) {
+      if (!local.file(artifact).exists && DiffSupports.contains(artifact.packaging)) {
         local.lastestBefore(artifact) foreach { lastest =>
           diffs += Diff(lastest, artifact.version)
         }
@@ -105,7 +105,7 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     if (local.file(artifact).exists && !artifact.isSnapshot) {
       local.verifySha1(artifact) match {
         case None =>
-          if (verbose) println("Error Cannot find " + artifact.sha1 + ",Verify aborted.")
+          if (verbose) println("Cannot find " + artifact.sha1 + ",Verify aborted.")
           false
         case Some(false) =>
           if (verbose) println("Error sha1 for " + artifact + ",Remove it.")
@@ -163,7 +163,6 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
           print(sb.toString)
         }
       }
-      if (count > 0) print("\n")
     }
   }
 

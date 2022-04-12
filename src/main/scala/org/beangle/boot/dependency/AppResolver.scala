@@ -18,7 +18,7 @@
 package org.beangle.boot.dependency
 
 import org.beangle.boot.artifact.*
-import org.beangle.boot.downloader.DefaultDownloader
+import org.beangle.boot.downloader.{DefaultDownloader, Detector}
 import org.beangle.commons.collection.Collections
 
 import java.io.File
@@ -39,7 +39,7 @@ object AppResolver {
 
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
-      println("Usage:java org.beangle.boot.artifact.AppResolver artifact_file remote_url local_base")
+      println("Usage:java org.beangle.boot.dependency.AppResolver artifact_file remote_url local_base")
       return
     }
     var remote = Repo.Remote.CentralURL
@@ -55,13 +55,12 @@ object AppResolver {
       val (all, missing) = process(a, remoteRepo, localRepo)
       if (missing.nonEmpty) {
         missingSize = missing.size
-        Console.err.println("Download error :" + missing)
+        Console.err.println("Missing: " + missing.mkString(","))
       }
     }
     if (dest.isEmpty || missingSize > 0) {
       System.exit(1)
     } else {
-      println(dest.get.getAbsolutePath);
       System.exit(0)
     }
   }
@@ -80,9 +79,9 @@ object AppResolver {
     if (isApp(file)) {
       val innerPath = if (file.endsWith(".war")) WarDependenciesFile else JarDependenciesFile
       val nestedUrl = new URL("jar:file:" + artifact.getAbsolutePath + "!" + innerPath)
-      url = exists(nestedUrl)
+      url = Detector.tryOpen(nestedUrl)
       if (null == url && file.endsWith(".war")) {
-        url = exists(new URL("jar:file:" + artifact.getAbsolutePath + "!" + OldWarDependenciesFile))
+        url = Detector.tryOpen(new URL("jar:file:" + artifact.getAbsolutePath + "!" + OldWarDependenciesFile))
       }
     } else if (artifact.isDirectory) {
       val nestedFile = new File(file + WarDependenciesFile)
@@ -92,20 +91,8 @@ object AppResolver {
     } else {
       url = artifact.toURI.toURL
     }
-    if (null == url) {
-      List.empty
-    } else {
-      DependencyResolver.resolve(url)
-    }
-  }
-
-  private def exists(url: URL): URL = {
-    try {
-      url.openConnection.connect()
-      url
-    } catch {
-      case _: Throwable => null
-    }
+    if null == url then List.empty
+    else DependencyResolver.resolve(url)
   }
 
   def fetch(file: String, remoteRepo: Repo.Remote, localRepo: Repo.Local, verbose: Boolean = true): Option[File] = {
@@ -113,7 +100,7 @@ object AppResolver {
       val war = Artifact(file)
       new ArtifactDownloader(remoteRepo, localRepo, verbose).download(List(war))
       if (!localRepo.exists(war)) {
-        if (verbose) println("Download error:" + file)
+        if (verbose) println("Cannot download:" + file)
         None
       } else {
         Some(new File(localRepo.file(war).getAbsolutePath))
@@ -143,13 +130,17 @@ object AppResolver {
       case rf@RemoteFile(u) =>
         val localFile = rf.local(localRepo)
         new DefaultDownloader("default", new URL(u), localFile).start()
-        if (!localFile.exists()) {
-          missing += rf
-        }
+        if !localFile.exists() then missing += rf
       case _ =>
     }
 
     new ArtifactDownloader(remoteRepo, localRepo, verbose).download(artifacts)
+    missing ++= archives.filter { x =>
+      x match {
+        case a: Artifact => !localRepo.file(a).exists
+        case _ => false
+      }
+    }
     (archives, missing)
   }
 
