@@ -86,14 +86,14 @@ detect_jarfile(){
   fi
 }
 
-export scala_ver=3.0.1
-export scala_lib_ver=2.13.6
+export scala_ver=3.0.2
+export scala_lib_ver=2.13.8
 
-export beangle_commons_ver=5.2.6
-export slf4j_ver=2.0.0-alpha4
-export logback_ver=1.3.0-alpha9
+export beangle_commons_ver=5.2.16
+export slf4j_ver=2.0.0-alpha7
+export logback_ver=1.3.0-alpha14
 export commons_compress_ver=1.21
-export boot_ver=0.0.26
+export boot_ver=0.0.30
 
 download org.scala-lang scala3-library_3 $scala_ver
 download org.scala-lang scala-library $scala_lib_ver
@@ -110,14 +110,15 @@ detect_jarfile
 #get options and args of java program
 args="${opts#*$jarfile}" #parts after jarfile
 options="${opts%%$jarfile*}" #parts before jarfile
-java -cp "${bootpath:1}" org.beangle.boot.dependency.AppResolver $jarfile $M2_REMOTE_REPO $M2_REPO
+bootpath="${bootpath:1}" #omit head :
+java -cp "$bootpath" org.beangle.boot.dependency.AppResolver $jarfile $M2_REMOTE_REPO $M2_REPO
 
 if [ $? -ne 0  ]; then
   echo "Cannot resolve $jarfile, Launching aborted"
   exit
 fi
 
-info=`java -cp "${bootpath:1}" org.beangle.boot.launcher.Classpath $jarfile $M2_REPO`
+info=`java -cp "$bootpath" org.beangle.boot.launcher.Classpath $jarfile $M2_REPO`
 
 if [ $? = 0 ]; then
   mainclass="${info%@*}"

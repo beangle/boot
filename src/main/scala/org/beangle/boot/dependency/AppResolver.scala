@@ -33,9 +33,7 @@ object AppResolver {
 
   private val OldWarDependenciesFile = "/WEB-INF/classes/META-INF/beangle/container.dependencies"
 
-  def isApp(file: String): Boolean = {
-    file.endsWith(".war") || file.endsWith(".jar")
-  }
+  private var verbose = true
 
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
@@ -46,76 +44,49 @@ object AppResolver {
     var local: String = null
     if (args.length > 1) remote = args(1)
     if (args.length > 2) local = args(2)
+    if (args.length > 3 && args(3) == "--quiet") verbose = false
 
     val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
     val localRepo = new Repo.Local(local)
-    val dest = fetch(args(0), remoteRepo, localRepo)
+    val dest = fetch(args(0), remoteRepo, localRepo, verbose)
     var missingSize = 0
     dest foreach { a =>
       val (all, missing) = process(a, remoteRepo, localRepo)
       if (missing.nonEmpty) {
         missingSize = missing.size
-        Console.err.println("Missing: " + missing.mkString(","))
+        if verbose then Console.err.println("Missing: " + missing.mkString(","))
       }
     }
     if (dest.isEmpty || missingSize > 0) {
       System.exit(1)
     } else {
+      println(dest.get.getAbsolutePath)
       System.exit(0)
     }
-  }
-
-  /**
-   * 可以解析一个war|jar，一个文本文件或者一个war解压后的文件夹
-   */
-  def resolveArchive(artifact: File): Iterable[Archive] = {
-    val file = artifact.getAbsolutePath
-    if (!artifact.exists) {
-      println(s"Cannot find file $file")
-      return List.empty
-    }
-
-    var url: URL = null
-    if (isApp(file)) {
-      val innerPath = if (file.endsWith(".war")) WarDependenciesFile else JarDependenciesFile
-      val nestedUrl = new URL("jar:file:" + artifact.getAbsolutePath + "!" + innerPath)
-      url = Detector.tryOpen(nestedUrl)
-      if (null == url && file.endsWith(".war")) {
-        url = Detector.tryOpen(new URL("jar:file:" + artifact.getAbsolutePath + "!" + OldWarDependenciesFile))
-      }
-    } else if (artifact.isDirectory) {
-      val nestedFile = new File(file + WarDependenciesFile)
-      if (nestedFile.isFile) {
-        url = nestedFile.toURI.toURL
-      }
-    } else {
-      url = artifact.toURI.toURL
-    }
-    if null == url then List.empty
-    else DependencyResolver.resolve(url)
   }
 
   def fetch(file: String, remoteRepo: Repo.Remote, localRepo: Repo.Local, verbose: Boolean = true): Option[File] = {
     if (file.contains(":") && !file.contains("/") && !file.contains("\\")) {
       val war = Artifact(file)
       new ArtifactDownloader(remoteRepo, localRepo, verbose).download(List(war))
-      if (!localRepo.exists(war)) {
-        if (verbose) println("Cannot download:" + file)
-        None
-      } else {
-        Some(new File(localRepo.file(war).getAbsolutePath))
-      }
+      if !localRepo.exists(war) then error("Cannot download:" + file)
+      else Some(new File(localRepo.file(war).getAbsolutePath))
     } else if (isApp(file)) {
       val localFile = new File(file)
-      if (localFile.exists) {
-        Some(localFile)
-      } else {
-        if (verbose) println(s"Cannot find $file")
-        None
-      }
+      if localFile.exists then Some(localFile)
+      else error(s"Cannot find $file")
     } else {
       throw new RuntimeException("Cannot launch app " + file)
     }
+  }
+
+  def isApp(file: String): Boolean = {
+    file.endsWith(".war") || file.endsWith(".jar")
+  }
+
+  private def error(msg: String): Option[File] = {
+    if verbose then println(msg)
+    None
   }
 
   def process(file: File, remoteRepo: Repo.Remote,
@@ -144,4 +115,33 @@ object AppResolver {
     (archives, missing)
   }
 
+  /**
+   * 可以解析一个war|jar，一个文本文件或者一个war解压后的文件夹
+   */
+  def resolveArchive(artifact: File): Iterable[Archive] = {
+    val file = artifact.getAbsolutePath
+    if (!artifact.exists) {
+      if verbose then println(s"Cannot find file $file")
+      return List.empty
+    }
+
+    var url: URL = null
+    if (isApp(file)) {
+      val innerPath = if (file.endsWith(".war")) WarDependenciesFile else JarDependenciesFile
+      val nestedUrl = new URL("jar:file:" + artifact.getAbsolutePath + "!" + innerPath)
+      url = Detector.tryOpen(nestedUrl)
+      if (null == url && file.endsWith(".war")) {
+        url = Detector.tryOpen(new URL("jar:file:" + artifact.getAbsolutePath + "!" + OldWarDependenciesFile))
+      }
+    } else if (artifact.isDirectory) {
+      val nestedFile = new File(file + WarDependenciesFile)
+      if (nestedFile.isFile) {
+        url = nestedFile.toURI.toURL
+      }
+    } else {
+      url = artifact.toURI.toURL
+    }
+    if null == url then List.empty
+    else DependencyResolver.resolve(url)
+  }
 }
