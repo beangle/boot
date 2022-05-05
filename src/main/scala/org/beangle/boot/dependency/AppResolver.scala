@@ -35,20 +35,30 @@ object AppResolver {
 
   private var verbose = true
 
+  /** 解析一个war或者jar文件，如果成功，则输出这个文件的绝对地址。
+   *
+   * @param args
+   */
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
-      println("Usage:java org.beangle.boot.dependency.AppResolver artifact_file remote_url local_base")
+      println("Usage:java org.beangle.boot.dependency.AppResolver artifact_file [--remote=remote_url] [--local=local_base] [--quiet]")
       return
     }
+    val artifactURI = args(0)
     var remote = Repo.Remote.CentralURL
     var local: String = null
-    if (args.length > 1) remote = args(1)
-    if (args.length > 2) local = args(2)
-    if (args.length > 3 && args(3) == "--quiet") verbose = false
 
+    args foreach { arg =>
+      if arg.startsWith("--remote=") then
+        remote = arg.substring("--remote=".length).trim
+      else if arg.startsWith("--local=") then
+        local = arg.substring("--local=".length).trim
+      else if arg == "--quiet" then
+        verbose = false
+    }
     val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
     val localRepo = new Repo.Local(local)
-    val dest = fetch(args(0), remoteRepo, localRepo, verbose)
+    val dest = fetch(artifactURI, remoteRepo, localRepo, verbose)
     var missingSize = 0
     dest foreach { a =>
       val (all, missing) = process(a, remoteRepo, localRepo)

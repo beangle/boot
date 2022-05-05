@@ -111,14 +111,14 @@ detect_jarfile
 args="${opts#*$jarfile}" #parts after jarfile
 options="${opts%%$jarfile*}" #parts before jarfile
 bootpath="${bootpath:1}" #omit head :
-java -cp "$bootpath" org.beangle.boot.dependency.AppResolver $jarfile $M2_REMOTE_REPO $M2_REPO
+java -cp "$bootpath" org.beangle.boot.dependency.AppResolver $jarfile --remote=$M2_REMOTE_REPO --local=$M2_REPO
 
 if [ $? -ne 0  ]; then
   echo "Cannot resolve $jarfile, Launching aborted"
   exit
 fi
 
-info=`java -cp "$bootpath" org.beangle.boot.launcher.Classpath $jarfile $M2_REPO`
+info=`java -cp "$bootpath" org.beangle.boot.launcher.Classpath $jarfile --local=$M2_REPO`
 
 if [ $? = 0 ]; then
   mainclass="${info%@*}"

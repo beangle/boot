@@ -29,14 +29,22 @@ object Classpath {
 
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
+      println("Usage:java org.beangle.boot.launcher.Classpath artifact_file [--remote=remote_url] [--local=local_base]")
       System.exit(-1)
     }
+    val artifactURI = args(0)
     var local: String = null
-    if (args.length > 1) local = args(1)
-    val remoteRepo = new Repo.Remote("remote", Repo.Remote.CentralURL, Layout.Maven2)
+    var remote = Repo.Remote.CentralURL
+    args foreach { arg =>
+      if arg.startsWith("--remote=") then
+        remote = arg.substring("--remote=".length).trim
+      else if arg.startsWith("--local=") then
+        local = arg.substring("--local=".length).trim
+    }
+    val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
     val localRepo = new Repo.Local(local)
 
-    fetch(args(0), remoteRepo, localRepo, false) match {
+    fetch(artifactURI, remoteRepo, localRepo, false) match {
       case Some(a) =>
         val archives = resolveArchive(a)
         val paths = Collections.newBuffer[String]
