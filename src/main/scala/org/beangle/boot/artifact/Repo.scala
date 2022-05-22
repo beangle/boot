@@ -183,7 +183,10 @@ object Repo {
         throw new RuntimeException("Do not support layout $layout,Using maven2 or ivy2")
       }
     } else {
-      if (base.endsWith(/)) base.substring(0, base.length - 1) else base
+      var fullPath = base.trim()
+      if fullPath.startsWith("~") then
+        fullPath = System.getProperty("user.home") + fullPath.substring(1)
+      if (fullPath.endsWith(/)) fullPath.substring(0, fullPath.length - 1) else fullPath
     }
   }
 
