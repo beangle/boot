@@ -73,10 +73,10 @@ export_extra_classpath() {
 detect_jarfile(){
   for arg in $opts
   do
-      if [ "$arg" = "${arg#"-"}" ]; then
-        jarfile="$arg"
-        break;
-      fi
+    if [ "$arg" = "${arg#"-"}" ]; then
+      jarfile="$arg"
+      break;
+    fi
   done
 
   # try to find jar file
@@ -86,14 +86,14 @@ detect_jarfile(){
   fi
 }
 
-export scala_ver=3.0.2
+export scala_ver=3.2.0
 export scala_lib_ver=2.13.8
 
-export beangle_commons_ver=5.2.16
-export slf4j_ver=2.0.0-alpha7
-export logback_ver=1.3.0-alpha14
+export beangle_commons_ver=5.4.0
+export slf4j_ver=2.0.0
+export logback_ver=1.4.0
 export commons_compress_ver=1.21
-export boot_ver=0.0.30
+export boot_ver=0.1.0
 
 download org.scala-lang scala3-library_3 $scala_ver
 download org.scala-lang scala-library $scala_lib_ver
