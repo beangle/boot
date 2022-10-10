@@ -67,12 +67,7 @@ object AppResolver {
         if verbose then Console.err.println("Missing: " + missing.mkString(","))
       }
     }
-    if (dest.isEmpty || missingSize > 0) {
-      System.exit(1)
-    } else {
-      println(dest.get.getAbsolutePath)
-      System.exit(0)
-    }
+    System.exit(if dest.isEmpty || missingSize > 0 then 1 else 0)
   }
 
   def fetch(file: String, remoteRepo: Repo.Remote, localRepo: Repo.Local, verbose: Boolean = true): Option[File] = {
