@@ -2,7 +2,7 @@ import org.beangle.parent.Dependencies._
 import org.beangle.parent.Settings._
 
 ThisBuild / organization := "org.beangle.boot"
-ThisBuild / version := "0.1.2-SNAPSHOT"
+ThisBuild / version := "0.1.2"
 
 ThisBuild / scmInfo := Some(
   ScmInfo(
@@ -19,7 +19,7 @@ ThisBuild / developers := List(
     url   = url("http://github.com/duantihua")
   )
 )
-val beangle_common_ver="5.4.1"
+val beangle_common_ver="5.4.2"
 ThisBuild / description := "Beangle Boot ToolKit"
 ThisBuild / homepage := Some(url("https://beangle.github.io/boot/index.html"))
 val beangle_commons_core = "org.beangle.commons" %% "beangle-commons-core" % beangle_common_ver
