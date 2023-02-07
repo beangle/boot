@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 if [ $# -eq 0 ]; then
   echo "Usage:
    launch.sh [jvm_options] /path/to/jar [args]
@@ -86,14 +87,14 @@ detect_jarfile(){
   fi
 }
 
-export scala_ver=3.2.1
+export scala_ver=3.2.2
 export scala_lib_ver=2.13.10
 
-export beangle_commons_ver=5.4.2
-export slf4j_ver=2.0.3
-export logback_ver=1.4.4
-export commons_compress_ver=1.21
-export boot_ver=0.1.2
+export beangle_commons_ver=5.5.0
+export slf4j_ver=2.0.6
+export logback_ver=1.4.5
+export commons_compress_ver=1.22
+export boot_ver=0.1.3
 
 download org.scala-lang scala3-library_3 $scala_ver
 download org.scala-lang scala-library $scala_lib_ver
