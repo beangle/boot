@@ -87,14 +87,14 @@ detect_jarfile(){
   fi
 }
 
-export scala_ver=3.3.0
+export scala_ver=3.3.1
 export scala_lib_ver=2.13.11
 
-export beangle_commons_ver=5.5.3
-export slf4j_ver=2.0.7
-export logback_ver=1.4.7
-export commons_compress_ver=1.23.0
-export boot_ver=0.1.4
+export beangle_commons_ver=5.6.0
+export slf4j_ver=2.0.9
+export logback_ver=1.4.11
+export commons_compress_ver=1.24.0
+export boot_ver=0.1.5
 
 download org.scala-lang scala3-library_3 $scala_ver
 download org.scala-lang scala-library $scala_lib_ver
