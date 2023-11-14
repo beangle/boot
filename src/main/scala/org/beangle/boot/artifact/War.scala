@@ -26,12 +26,12 @@ object War {
     if (file.exists()) {
       val war = new ZipFile(file)
       val entries = war.entries()
-      var finded = false
-      while (entries.hasMoreElements && !finded) {
+      var found = false
+      while (entries.hasMoreElements && !found) {
         val entry = entries.nextElement().getName
-        finded = (entry.startsWith("WEB-INF/lib/") && entry.endsWith(".jar"))
+        found = (entry.startsWith("WEB-INF/lib/") && entry.endsWith(".jar"))
       }
-      !finded
+      !found
     } else {
       throw new RuntimeException(s"Cannot find war file located at $path")
     }

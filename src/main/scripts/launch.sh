@@ -9,7 +9,7 @@ if [ $# -eq 0 ]; then
 fi
 
 if [ -z "$M2_REMOTE_REPO" ]; then
-  export M2_REMOTE_REPO="https://maven.aliyun.com/nexus/content/groups/public"
+  export M2_REMOTE_REPO="https://maven.aliyun.com/repository/public"
 fi
 if [ -z "$M2_REPO" ]; then
   export M2_REPO="$HOME/.m2/repository"
