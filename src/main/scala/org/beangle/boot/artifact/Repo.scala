@@ -20,11 +20,10 @@ package org.beangle.boot.artifact
 import org.beangle.boot.artifact.util.Delta
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.Files./
-import org.beangle.commons.io.IOs
-import org.beangle.commons.lang.Charsets
+import org.beangle.commons.lang.Strings
 import org.beangle.commons.net.http.HttpUtils
 
-import java.io.{File, FileInputStream}
+import java.io.File
 import java.net.{HttpURLConnection, URL}
 
 object Repo {
@@ -37,6 +36,10 @@ object Repo {
     new Remote(base, base, Layout.Maven2)
   }
 
+  def remotes(base: String): Seq[Remote] = {
+    Strings.split(base).map(b => new Remote(b, b, Layout.Maven2)).toSeq
+  }
+
   abstract class Repository {
     def id: String
 
@@ -46,8 +49,12 @@ object Repo {
 
     def exists(filePath: String): Boolean
 
-    def exists(a: Artifact): Boolean = {
-      exists(layout.path(a))
+    def exists(p: RepoArchive): Boolean = {
+      val path = p match {
+        case a: Artifact => layout.path(a)
+        case d: Diff => layout.path(d)
+      }
+      exists(path)
     }
 
     def url(p: RepoArchive): String = {
@@ -87,15 +94,15 @@ object Repo {
       if exists(artifact) && exists(sha1) then Some(Delta.verifySha1(url(artifact), url(sha1))) else None
     }
 
-    def lastestBefore(artifact: Artifact): Option[Artifact] = {
-      lastest(artifact, isLessThen = true)
+    def latestBefore(artifact: Artifact): Option[Artifact] = {
+      latest(artifact, isLessThen = true)
     }
 
-    def lastest(artifact: Artifact): Option[Artifact] = {
-      lastest(artifact, isLessThen = false)
+    def latest(artifact: Artifact): Option[Artifact] = {
+      latest(artifact, isLessThen = false)
     }
 
-    def lastest(artifact: Artifact, isLessThen: Boolean): Option[Artifact] = {
+    def latest(artifact: Artifact, isLessThen: Boolean): Option[Artifact] = {
       val parent = new File(url(artifact)).getParentFile.getParentFile
       if (parent.exists()) {
         val siblings = parent.list().toList
@@ -122,6 +129,7 @@ object Repo {
   object Remote {
     val CentralURL = "https://repo1.maven.org/maven2"
     val AliyunURL = "https://maven.aliyun.com/repository/public"
+    var HuaweiCloudURL = "https://repo.huaweicloud.com/repository/maven"
   }
 
   class Remote(val id: String, var base: String, val layout: Layout = Layout.Maven2) extends Repository {
@@ -140,9 +148,7 @@ object Repo {
       }
     }
 
-    override def hashCode: Int = {
-      id.hashCode
-    }
+    override def hashCode: Int = id.hashCode
 
     override def equals(any: Any): Boolean = {
       any match {

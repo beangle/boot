@@ -34,17 +34,18 @@ object Classpath {
     }
     val artifactURI = args(0)
     var local: String = null
-    var remote = Repo.Remote.CentralURL
+    var remote = Seq(Repo.Remote.AliyunURL, Repo.Remote.HuaweiCloudURL, Repo.Remote.CentralURL).mkString(",")
     args foreach { arg =>
       if arg.startsWith("--remote=") then
         remote = arg.substring("--remote=".length).trim
       else if arg.startsWith("--local=") then
         local = arg.substring("--local=".length).trim
     }
-    val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
+    if !remote.contains(Repo.Remote.CentralURL) then remote += "," + Repo.Remote.CentralURL
+    val remoteRepos = Repo.remotes(remote)
     val localRepo = new Repo.Local(local)
 
-    fetch(artifactURI, remoteRepo, localRepo, false) match {
+    fetch(artifactURI, remoteRepos, localRepo, false) match {
       case Some(a) =>
         val archives = resolveArchive(a)
         val paths = Collections.newBuffer[String]

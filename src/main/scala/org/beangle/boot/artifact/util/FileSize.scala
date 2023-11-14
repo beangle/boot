@@ -20,10 +20,6 @@ package org.beangle.boot.artifact.util
 object FileSize {
 
   def apply(total: Long): String = {
-    if (total < 1024) {
-      s"${total}Byte"
-    } else {
-      s"${total / 1024}KB"
-    }
+    if total < 1024 then s"${total}Byte" else s"${total / 1024}KB"
   }
 }

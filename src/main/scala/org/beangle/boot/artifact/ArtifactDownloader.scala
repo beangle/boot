@@ -17,6 +17,7 @@
 
 package org.beangle.boot.artifact
 
+import org.beangle.boot.artifact.ArtifactDownloader.*
 import org.beangle.boot.artifact.util.{Delta, FileSize}
 import org.beangle.boot.downloader.{Downloader, RangeDownloader}
 import org.beangle.commons.codec.binary.Base64
@@ -26,7 +27,6 @@ import java.io.IOException
 import java.net.URL
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService, Executors}
 import scala.jdk.javaapi.CollectionConverters.asScala
-import ArtifactDownloader.*
 
 /**
  * ArtifactDownloader
@@ -39,13 +39,13 @@ import ArtifactDownloader.*
  */
 object ArtifactDownloader {
   def apply(remote: String, base: String = null, verbose: Boolean = true): ArtifactDownloader = {
-    new ArtifactDownloader(Repo.remote(remote), Repo.local(base), verbose)
+    new ArtifactDownloader(Repo.remotes(remote), Repo.local(base), verbose)
   }
 
   val DiffSupports = Set("zip", "war", "jar", "ear")
 }
 
-class ArtifactDownloader(private val remote: Repo.Remote, private val local: Repo.Local, var verbose: Boolean) {
+class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val local: Repo.Local, var verbose: Boolean) {
 
   private val properties = Collections.newMap[String, String]
 
@@ -68,8 +68,8 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
         if !local.file(sha1).exists() then sha1s += sha1
       }
       if (!local.file(artifact).exists && DiffSupports.contains(artifact.packaging)) {
-        local.lastestBefore(artifact) foreach { lastest =>
-          diffs += Diff(lastest, artifact.version)
+        local.latestBefore(artifact) foreach { latest =>
+          diffs += Diff(latest, artifact.version)
         }
       }
     }
@@ -124,20 +124,24 @@ class ArtifactDownloader(private val remote: Repo.Remote, private val local: Rep
     for (artifact <- products) {
       if (!local.file(artifact).exists()) {
         val id = idx
-        val downloader = RangeDownloader(s"$id/${products.size}", remote.url(artifact), local.url(artifact))
-        downloader.verbose = verbose
-        downloader.addProperties(properties)
-        statuses.put(downloader.url, downloader)
+        remotes.find(r => r.exists(artifact)) match
+          case None =>
+            println(s"Not found(${remotes.size} mirrors):" + artifact.url)
+          case Some(remote) =>
+            val downloader = RangeDownloader(s"$id/${products.size}", remote.url(artifact), local.url(artifact))
+            downloader.verbose = verbose
+            downloader.addProperties(properties)
+            statuses.put(downloader.url, downloader)
 
-        executor.execute(() => {
-          try {
-            downloader.start()
-          } catch {
-            case e: IOException => e.printStackTrace()
-          } finally {
-            statuses.remove(downloader.url)
-          }
-        })
+            executor.execute(() => {
+              try {
+                downloader.start()
+              } catch {
+                case e: IOException => e.printStackTrace()
+              } finally {
+                statuses.remove(downloader.url)
+              }
+            })
         idx += 1
       }
     }

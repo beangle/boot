@@ -17,21 +17,22 @@
 
 package org.beangle.boot.artifact
 
-import java.io.File
-
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.Dirs
 import org.beangle.commons.lang.SystemInfo
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
+import java.io.File
+
 class ArtifactDownloaderTest extends AnyFunSpec with Matchers {
 
   val tempLocalRepo = new File(SystemInfo.tmpDir + "/.m2/repository")
   tempLocalRepo.mkdirs()
-  val downloader = ArtifactDownloader(Repo.Remote.CentralURL, tempLocalRepo.getAbsolutePath)
+  val remotes = Seq(Repo.Remote.AliyunURL, Repo.Remote.HuaweiCloudURL, Repo.Remote.CentralURL).mkString(",")
+  val downloader = ArtifactDownloader(remotes, tempLocalRepo.getAbsolutePath)
 
-  val huaweiloader = ArtifactDownloader("https://mirrors.huaweicloud.com/repository/maven/", tempLocalRepo.getAbsolutePath)
+  val huaweiloader = ArtifactDownloader("https://mirrors.huaweicloud.com/repository/maven", tempLocalRepo.getAbsolutePath)
   huaweiloader.authorization("anonymous", "devcloud")
 
   val slf4j_1_7_24 = new Artifact("org.slf4j", "slf4j-api", "1.7.24", None, "jar")
@@ -59,8 +60,8 @@ class ArtifactDownloaderTest extends AnyFunSpec with Matchers {
       huaweiloader.download(List(slf4j_1_8_0))
 
       //range download
-//      downloader.verbose = true
-//      downloader.download(List(hibernate_core_5422))
+      //      downloader.verbose = true
+      //      downloader.download(List(hibernate_core_5422))
     }
   }
 }

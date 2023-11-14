@@ -45,7 +45,7 @@ object AppResolver {
       return
     }
     val artifactURI = args(0)
-    var remote = Repo.Remote.CentralURL
+    var remote = Seq(Repo.Remote.AliyunURL, Repo.Remote.HuaweiCloudURL, Repo.Remote.CentralURL).mkString(",")
     var local: String = null
 
     args foreach { arg =>
@@ -56,12 +56,13 @@ object AppResolver {
       else if arg == "--quiet" then
         verbose = false
     }
-    val remoteRepo = new Repo.Remote("remote", remote, Layout.Maven2)
+    if !remote.contains(Repo.Remote.CentralURL) then remote += "," + Repo.Remote.CentralURL
+    val remoteRepos = Repo.remotes(remote)
     val localRepo = new Repo.Local(local)
-    val dest = fetch(artifactURI, remoteRepo, localRepo, verbose)
+    val dest = fetch(artifactURI, remoteRepos, localRepo, verbose)
     var missingSize = 0
     dest foreach { a =>
-      val (all, missing) = process(a, remoteRepo, localRepo)
+      val (all, missing) = process(a, remoteRepos, localRepo)
       if (missing.nonEmpty) {
         missingSize = missing.size
         if verbose then Console.err.println("Missing: " + missing.mkString(","))
@@ -70,10 +71,10 @@ object AppResolver {
     System.exit(if dest.isEmpty || missingSize > 0 then 1 else 0)
   }
 
-  def fetch(file: String, remoteRepo: Repo.Remote, localRepo: Repo.Local, verbose: Boolean = true): Option[File] = {
+  def fetch(file: String, remoteRepos: Seq[Repo.Remote], localRepo: Repo.Local, verbose: Boolean = true): Option[File] = {
     if (file.contains(":") && !file.contains("/") && !file.contains("\\")) {
       val war = Artifact(file)
-      new ArtifactDownloader(remoteRepo, localRepo, verbose).download(List(war))
+      new ArtifactDownloader(remoteRepos, localRepo, verbose).download(List(war))
       if !localRepo.exists(war) then error("Cannot download:" + file)
       else Some(new File(localRepo.file(war).getAbsolutePath))
     } else if (isApp(file)) {
@@ -94,7 +95,7 @@ object AppResolver {
     None
   }
 
-  def process(file: File, remoteRepo: Repo.Remote,
+  def process(file: File, remoteRepos: Seq[Repo.Remote],
               localRepo: Repo.Local, verbose: Boolean = true): (Iterable[Archive], Iterable[Archive]) = {
     val archives = resolveArchive(file)
     val artifacts = Collections.newBuffer[Artifact]
@@ -110,7 +111,7 @@ object AppResolver {
       case _ =>
     }
 
-    new ArtifactDownloader(remoteRepo, localRepo, verbose).download(artifacts)
+    new ArtifactDownloader(remoteRepos, localRepo, verbose).download(artifacts)
     missing ++= archives.filter { x =>
       x match {
         case a: Artifact => !localRepo.file(a).exists
