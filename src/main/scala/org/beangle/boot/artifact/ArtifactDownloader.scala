@@ -42,13 +42,14 @@ object ArtifactDownloader {
     new ArtifactDownloader(Repo.remotes(remote), Repo.local(base), verbose)
   }
 
-  val DiffSupports = Set("zip", "war", "jar", "ear")
+  val DiffSupports = Set("zip", "war", "ear")
 }
 
 class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val local: Repo.Local, var verbose: Boolean) {
 
   private val properties = Collections.newMap[String, String]
 
+  var preferDiff: Boolean = false
   var maxthread: Int = 5
 
   def authorization(username: String, password: String): Unit = {
@@ -67,7 +68,7 @@ class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val loca
         val sha1 = artifact.sha1
         if !local.file(sha1).exists() then sha1s += sha1
       }
-      if (!local.file(artifact).exists && DiffSupports.contains(artifact.packaging)) {
+      if (!local.file(artifact).exists && preferDiff && DiffSupports.contains(artifact.packaging)) {
         local.latestBefore(artifact) foreach { latest =>
           diffs += Diff(latest, artifact.version)
         }
@@ -75,14 +76,15 @@ class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val loca
     }
     // download sha1s
     doDownload(sha1s, executor, statuses)
-    // download diffs and patch them.
-    doDownload(diffs, executor, statuses)
-
-    for (diff <- diffs) {
-      val diffFile = local.file(diff)
-      if (diffFile.exists) {
-        if (verbose) println("Patching " + diff)
-        Delta.patch(local.url(diff.older), local.url(diff.newer), local.url(diff))
+    if (preferDiff) {
+      // download diffs and patch them.
+      doDownload(diffs, executor, statuses)
+      for (diff <- diffs) {
+        val diffFile = local.file(diff)
+        if (diffFile.exists) {
+          if (verbose) println("Patching " + diff)
+          Delta.patch(local.url(diff.older), local.url(diff.newer), local.url(diff))
+        }
       }
     }
 
