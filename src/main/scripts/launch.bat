@@ -13,3 +13,5 @@ IF "%M2_REMOTE_REPO%"=="" set M2_REMOTE_REPO="https://maven.aliyun.com/repositor
 if "%$M2_REPO%"==""  set M2_REPO="$HOME/.m2/repository"
 
 echo "under construction..."
+
+echo "try to learn bat grammar"
