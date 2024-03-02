@@ -19,7 +19,7 @@ ThisBuild / developers := List(
     url = url("http://github.com/duantihua")
   )
 )
-val beangle_common_ver = "5.6.10"
+val beangle_common_ver = "5.6.11"
 ThisBuild / description := "Beangle Boot ToolKit"
 ThisBuild / homepage := Some(url("https://beangle.github.io/boot/index.html"))
 val beangle_commons_core = "org.beangle.commons" %% "beangle-commons-core" % beangle_common_ver
