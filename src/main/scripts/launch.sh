@@ -90,18 +90,17 @@ detect_jarfile(){
 export scala_ver=3.3.3
 export scala_lib_ver=2.13.12
 
-export beangle_commons_ver=5.6.11
+export beangle_commons_ver=5.6.15
 export slf4j_ver=2.0.12
 export logback_ver=1.5.0
-export commons_compress_ver=1.26.0
-export boot_ver=0.1.9
+export commons_compress_ver=1.26.1
+export boot_ver=0.1.10
 
 download org.scala-lang scala3-library_3 $scala_ver
 download org.scala-lang scala-library $scala_lib_ver
-download org.beangle.commons beangle-commons-core_3  $beangle_commons_ver
-download org.beangle.commons beangle-commons-file_3  $beangle_commons_ver
+download org.beangle.commons beangle-commons  $beangle_commons_ver
 download org.apache.commons commons-compress $commons_compress_ver
-download org.beangle.boot beangle-boot_3 $boot_ver
+download org.beangle.boot beangle-boot $boot_ver
 download org.slf4j slf4j-api $slf4j_ver
 download ch.qos.logback logback-core $logback_ver
 download ch.qos.logback logback-classic $logback_ver
