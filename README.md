@@ -8,9 +8,13 @@ that corresponding jar can be fetched by maven repo.
 
 ## Generate dependencies file
 
-Put this configurate fragment in your project plugin.sbt file.
+Put this config fragment in your project plugin.sbt file.
 
+<<<<<<< HEAD
     addSbtPlugin("org.beangle.build" % "sbt-beangle-build" % "0.0.12")
+=======
+    addSbtPlugin("org.beangle.build" % "sbt-beangle-build" % "0.0.14")
+>>>>>>> develop
 
 A executable jar should contain Main-Class in /META-INF/MANIFEST.MF.The configuration
 can be appended by jar plugin.
