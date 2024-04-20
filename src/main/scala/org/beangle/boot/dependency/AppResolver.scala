@@ -18,7 +18,7 @@
 package org.beangle.boot.dependency
 
 import org.beangle.boot.artifact.*
-import org.beangle.boot.downloader.{DefaultDownloader, Detector}
+import org.beangle.boot.downloader.DefaultDownloader
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.net.Networks
 
@@ -135,9 +135,9 @@ object AppResolver {
     var url: URL = null
     if (isApp(file)) {
       val innerPath = if (file.endsWith(".war")) WarDependenciesFile else JarDependenciesFile
-      url = Networks.tryOpen("jar:file:" + artifact.getAbsolutePath + "!" + innerPath).orNull
+      url = Networks.tryConnectURL("jar:file:" + artifact.getAbsolutePath + "!" + innerPath).orNull
       if (null == url && file.endsWith(".war")) {
-        url = Networks.tryOpen("jar:file:" + artifact.getAbsolutePath + "!" + OldWarDependenciesFile).orNull
+        url = Networks.tryConnectURL("jar:file:" + artifact.getAbsolutePath + "!" + OldWarDependenciesFile).orNull
       }
     } else if (artifact.isDirectory) {
       val nestedFile = new File(file + WarDependenciesFile)
