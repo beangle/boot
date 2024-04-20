@@ -20,7 +20,7 @@ package org.beangle.boot.downloader
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.IOs
 import org.beangle.commons.lang.Strings
-import org.beangle.commons.net.http.HttpUtils
+import org.beangle.commons.net.Networks
 
 import java.io.*
 import java.net.{HttpURLConnection, URL}
@@ -29,7 +29,7 @@ import scala.collection.mutable
 
 object RangeDownloader {
   def apply(name: String, url: String, location: String): RangeDownloader = {
-    new RangeDownloader(name, new URL(url), new File(location))
+    new RangeDownloader(name, Networks.url(url), new File(location))
   }
 }
 

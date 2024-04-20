@@ -17,6 +17,7 @@
 
 package org.beangle.boot.downloader
 
+import org.beangle.commons.net.Networks
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -30,7 +31,7 @@ class DownloadTest extends AnyFunSpec with Matchers {
       val errorUrl = "https://maven.aliyun.com/nexus/content/groups/public/ant/ant/1.5.4/ant-1.5.4_1.5.3.jar.diff"
 
       location.delete()
-      val downloader = new DefaultDownloader("1", new URL(errorUrl), location)
+      val downloader = new DefaultDownloader("1", Networks.url(errorUrl), location)
       println(location)
       downloader.start()
     }

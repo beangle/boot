@@ -20,6 +20,7 @@ package org.beangle.boot.dependency
 import org.beangle.boot.artifact.*
 import org.beangle.boot.downloader.{DefaultDownloader, Detector}
 import org.beangle.commons.collection.Collections
+import org.beangle.commons.net.Networks
 
 import java.io.File
 import java.net.URL
@@ -106,7 +107,7 @@ object AppResolver {
       case lf@LocalFile(n) => if (!new File(n).exists) missing += lf
       case rf@RemoteFile(u) =>
         val localFile = rf.local(localRepo)
-        new DefaultDownloader("default", new URL(u), localFile).start()
+        new DefaultDownloader("default", Networks.url(u), localFile).start()
         if !localFile.exists() then missing += rf
       case _ =>
     }
@@ -134,10 +135,9 @@ object AppResolver {
     var url: URL = null
     if (isApp(file)) {
       val innerPath = if (file.endsWith(".war")) WarDependenciesFile else JarDependenciesFile
-      val nestedUrl = new URL("jar:file:" + artifact.getAbsolutePath + "!" + innerPath)
-      url = Detector.tryOpen(nestedUrl)
+      url = Networks.tryOpen("jar:file:" + artifact.getAbsolutePath + "!" + innerPath).orNull
       if (null == url && file.endsWith(".war")) {
-        url = Detector.tryOpen(new URL("jar:file:" + artifact.getAbsolutePath + "!" + OldWarDependenciesFile))
+        url = Networks.tryOpen("jar:file:" + artifact.getAbsolutePath + "!" + OldWarDependenciesFile).orNull
       }
     } else if (artifact.isDirectory) {
       val nestedFile = new File(file + WarDependenciesFile)

@@ -30,14 +30,4 @@ object Detector {
     end if
     urlStatus
   }
-
-  def tryOpen(url: URL): URL = {
-    try {
-      val conn = url.openConnection
-      conn.connect()
-      url
-    } catch {
-      case _: Throwable => null
-    }
-  }
 }

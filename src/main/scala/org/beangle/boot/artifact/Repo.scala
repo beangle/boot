@@ -21,6 +21,7 @@ import org.beangle.boot.artifact.util.Delta
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.Files./
 import org.beangle.commons.lang.Strings
+import org.beangle.commons.net.Networks
 import org.beangle.commons.net.http.HttpUtils
 
 import java.io.File
@@ -141,7 +142,7 @@ object Repo {
 
     override def exists(filePath: String): Boolean = {
       try {
-        val hc = HttpUtils.followRedirect(new URL(base + filePath).openConnection(), "HEAD")
+        val hc = HttpUtils.followRedirect(Networks.openURL(base + filePath), "HEAD")
         hc.getResponseCode == HttpURLConnection.HTTP_OK
       } catch {
         case _: Throwable => false
