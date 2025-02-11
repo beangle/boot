@@ -21,7 +21,7 @@ ThisBuild / developers := List(
 )
 ThisBuild / description := "Beangle Boot ToolKit"
 ThisBuild / homepage := Some(url("https://beangle.github.io/boot/index.html"))
-val beangle_commons = "org.beangle.commons" % "beangle-commons" % "5.6.25"
+val beangle_commons = "org.beangle.commons" % "beangle-commons" % "5.6.26"
 
 lazy val root = (project in file("."))
   .settings(
