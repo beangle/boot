@@ -3,14 +3,14 @@ Beangle Boot toolkit
 It provides a smart mechanism to bootstrap jar.Unlike other boot libraries which building flatjar,
 beangle-boot just detects dependencies list in jarfile!/META-INF/beangle/dependencies.
 
-The dependencies file contains many lines,each line discribe a artifact gav(group:artifact:version) info,
+The dependencies file contains many lines,each line describe an artifact gav(group:artifact:version) info,
 that corresponding jar can be fetched by maven repo.
 
 ## Generate dependencies file
 
 Put this config fragment in your project plugin.sbt file.
 
-    addSbtPlugin("org.beangle.build" % "sbt-beangle-build" % "0.0.14")
+    addSbtPlugin("org.beangle.build" % "sbt-beangle-build" % "0.0.15")
 
 A executable jar should contain Main-Class in /META-INF/MANIFEST.MF.The configuration
 can be appended by jar plugin.
