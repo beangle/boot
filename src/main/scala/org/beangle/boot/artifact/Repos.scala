@@ -21,6 +21,12 @@ import org.beangle.boot.downloader.RangeDownloader
 
 import java.io.File
 
+object Repos {
+  case class Release(local: Repo.Local, remotes: Seq[Repo.Remote])
+
+  case class Snapshot(local: Repo.LocalSnapshot, remote: Repo.Remote)
+}
+
 trait Repos {
 
   def find(path: String): Option[Repo.Remote]
@@ -34,6 +40,7 @@ trait Repos {
     }
     localFile
   }
+
   var cacheable: Boolean = true
 }
 
@@ -49,7 +56,7 @@ class MirrorRepos(val local: Repo.Local, val mirrors: List[Repo.Mirror], val bac
     val exists = matches.find(x => x.exists(path))
     exists match {
       case Some(e) => exists
-      case None    => if (backend.exists(path)) Some(backend) else None
+      case None => if (backend.exists(path)) Some(backend) else None
     }
   }
 }

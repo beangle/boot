@@ -20,17 +20,21 @@ package org.beangle.boot.artifact
 import org.beangle.boot.artifact.util.Delta
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.Files./
-import org.beangle.commons.lang.Strings
+import org.beangle.commons.lang.{Objects, Strings}
 import org.beangle.commons.net.Networks
 import org.beangle.commons.net.http.HttpUtils
 
 import java.io.File
-import java.net.{HttpURLConnection, URL}
+import java.net.HttpURLConnection
 
 object Repo {
 
   def local(base: String): Local = {
     new Local(base, Layout.Maven2)
+  }
+
+  def localSnapshot(base: String): LocalSnapshot = {
+    LocalSnapshot(base)
   }
 
   def remote(base: String): Remote = {
@@ -63,6 +67,75 @@ object Repo {
         case a: Artifact => base + layout.path(a)
         case d: Diff => base + layout.path(d)
       }
+    }
+  }
+
+  object LocalSnapshot {
+    def apply(base: String): LocalSnapshot = {
+      new LocalSnapshot(findLocalBase(base))
+    }
+
+    private def findLocalBase(base: String): String = {
+      if (null == base) {
+        System.getProperty("user.home") + / + ".m2" + / + "snapshots"
+      } else {
+        var fullPath = base.trim()
+        if fullPath.startsWith("~") then
+          fullPath = System.getProperty("user.home") + fullPath.substring(1)
+        if (fullPath.endsWith(/)) fullPath.substring(0, fullPath.length - 1) else fullPath
+      }
+    }
+  }
+
+  class LocalSnapshot(val base: String) extends Repository {
+    new File(base).mkdirs()
+
+    override def exists(path: String): Boolean = {
+      new File(base + path).exists
+    }
+
+    def latest(artifact: Artifact): File = {
+      val directfile = new File(url(artifact))
+      val parent = directfile.getParentFile
+      if (parent.exists()) {
+        val children = parent.list()
+        val snapshots = if null == children then List.empty else children.toList
+        val versions = Collections.newBuffer[SnaphotTimestamp]
+        val prefix = artifact.artifactId + "-" + Strings.replace(artifact.version, "-SNAPSHOT", "") + "-"
+        for (s <- snapshots) {
+          if (s.startsWith(prefix) && s.endsWith(".jar")) {
+            val ts = Strings.substringBetween(s, prefix, ".jar")
+            versions += new SnaphotTimestamp(ts)
+          }
+        }
+        val rs = versions.sorted
+        if (rs.isEmpty) directfile
+        else {
+          var filePath = url(artifact)
+          filePath = Strings.replace(filePath, "SNAPSHOT.jar", rs.last.toString + ".jar")
+          new File(filePath)
+        }
+      } else {
+        directfile
+      }
+    }
+
+    override def id: String = "local-snapshot"
+
+    override def layout: Layout = Layout.Maven2
+  }
+
+  case class SnaphotTimestamp(timestamp: String, build: Int) extends Ordered[SnaphotTimestamp] {
+    def this(s: String) = {
+      this(Strings.substringBeforeLast(s, "-"), Strings.substringAfterLast(s, "-").toInt)
+    }
+
+    override def toString: String = {
+      s"${timestamp}-${build}"
+    }
+
+    override def compare(that: SnaphotTimestamp): Int = {
+      Objects.compareBuilder.add(this.timestamp, that.timestamp).add(this.build, that.build).build()
     }
   }
 

@@ -17,8 +17,8 @@
 
 package org.beangle.boot.artifact
 
-import org.beangle.commons.lang.Strings._
-import org.beangle.commons.lang.SystemInfo
+import org.beangle.commons.lang.Strings.*
+import org.beangle.commons.lang.{Strings, SystemInfo}
 
 import java.io.File
 
