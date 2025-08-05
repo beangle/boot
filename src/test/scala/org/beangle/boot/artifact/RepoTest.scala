@@ -42,6 +42,7 @@ class RepoTest extends AnyFunSpec with Matchers {
       val local = LocalSnapshot(null)
       val base = local.base
       val dirs = Dirs.on(new File(base + "/org/beangle/commons/beangle-commons/5.0.0-SNAPSHOT/"))
+      dirs.mkdirs()
       dirs.delete(dirs.ls(): _*)
       dirs.touch("beangle-commons-5.0.0-20250803.132600-31.jar")
       dirs.touch("beangle-commons-5.0.0-20250803.132600-9.jar")
