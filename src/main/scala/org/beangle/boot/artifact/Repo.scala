@@ -95,6 +95,7 @@ object Repo {
     }
 
     def latest(artifact: Artifact): File = {
+      val ext = "." + artifact.packaging
       val directfile = new File(url(artifact))
       val parent = directfile.getParentFile
       if (parent.exists()) {
@@ -103,8 +104,8 @@ object Repo {
         val versions = Collections.newBuffer[SnaphotTimestamp]
         val prefix = artifact.artifactId + "-" + Strings.replace(artifact.version, "-SNAPSHOT", "") + "-"
         for (s <- snapshots) {
-          if (s.startsWith(prefix) && s.endsWith(".jar")) {
-            val ts = Strings.substringBetween(s, prefix, ".jar")
+          if (s.startsWith(prefix) && s.endsWith(ext)) {
+            val ts = Strings.substringBetween(s, prefix, ext)
             versions += new SnaphotTimestamp(ts)
           }
         }
@@ -112,7 +113,7 @@ object Repo {
         if (rs.isEmpty) directfile
         else {
           var filePath = url(artifact)
-          filePath = Strings.replace(filePath, "SNAPSHOT.jar", rs.last.toString + ".jar")
+          filePath = Strings.replace(filePath, "SNAPSHOT" + ext, rs.last.toString + ext)
           new File(filePath)
         }
       } else {
