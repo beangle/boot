@@ -94,7 +94,7 @@ export beangle_commons_ver=5.6.33
 export slf4j_ver=2.0.17
 export logback_ver=1.5.20
 export commons_compress_ver=1.28.0
-export boot_ver=0.1.20
+export boot_ver=0.1.21
 
 download org.scala-lang scala3-library_3 $scala_ver
 download org.scala-lang scala-library $scala_lib_ver
@@ -123,7 +123,7 @@ info=`java -cp "$bootpath" org.beangle.boot.launcher.Classpath $jarfile --local=
 if [ $? = 0 ]; then
   mainclass="${info%@*}"
   classpath="${info#*@}"
-  if [ "cannot.find.mainclass" = "$mainclass" ]; then
+  if [ "none" = "$mainclass" ]; then
     echo "Cannot find Main-Class in MANIFEST.MF of $jarfile"
   else
     java -cp "$classpath" $options "$mainclass" $args

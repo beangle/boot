@@ -32,8 +32,6 @@ object AppResolver {
   private val JarDependenciesFile = "/META-INF/beangle/dependencies"
   private val WarDependenciesFile = "/WEB-INF/classes" + JarDependenciesFile
 
-  private val OldWarDependenciesFile = "/WEB-INF/classes/META-INF/beangle/container.dependencies"
-
   private var verbose = true
 
   private var preferWar = false
@@ -93,7 +91,11 @@ object AppResolver {
       if localFile.exists then Some(localFile)
       else error(s"Cannot find $file")
     } else {
-      throw new RuntimeException("Cannot launch app " + file)
+      if (new File(file).isDirectory) {
+        Some(new File(file))
+      } else {
+        throw new RuntimeException("Cannot fetch app " + file)
+      }
     }
   }
 
@@ -153,9 +155,6 @@ object AppResolver {
     if (isApp(file)) {
       val innerPath = if (file.endsWith(".war")) WarDependenciesFile else JarDependenciesFile
       url = Networks.tryConnectURL("jar:file:" + artifact.getAbsolutePath + "!" + innerPath).orNull
-      if (null == url && file.endsWith(".war")) {
-        url = Networks.tryConnectURL("jar:file:" + artifact.getAbsolutePath + "!" + OldWarDependenciesFile).orNull
-      }
     } else if (artifact.isDirectory) {
       val nestedFile = new File(file + WarDependenciesFile)
       if (nestedFile.isFile) {

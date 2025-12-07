@@ -20,6 +20,7 @@ package org.beangle.boot.launcher
 import org.beangle.boot.artifact.*
 import org.beangle.boot.dependency.AppResolver.{fetch, resolveArchive}
 import org.beangle.commons.collection.Collections
+import org.beangle.commons.io.Dirs
 import org.beangle.commons.lang.Strings
 
 import java.io.File
@@ -49,7 +50,24 @@ object Classpath {
       case Some(a) =>
         val archives = resolveArchive(a)
         val paths = Collections.newBuffer[String]
-        paths += a.getAbsolutePath
+        //如果是jar包,则把该包放到classpath中
+        if (a.isFile && a.getName.endsWith(".jar")) {
+          paths += a.getAbsolutePath
+        } else if (a.isDirectory) {
+          //添加war包的依赖
+          val warClasses = a.getAbsolutePath + "/WEB-INF/classes"
+          if (new File(warClasses).exists()) {
+            paths += warClasses
+          }
+          val warLib = a.getAbsolutePath + "/WEB-INF/lib"
+          if (new File(warLib).exists()) {
+            Dirs.on(warLib).ls() foreach { lib =>
+              if (lib.endsWith(".jar")) {
+                paths += warLib + "/" + lib
+              }
+            }
+          }
+        }
         archives foreach {
           case a: Artifact => paths += localRepo.file(a).getAbsolutePath
           case LocalFile(n) => paths += n
@@ -60,7 +78,11 @@ object Classpath {
         if (Strings.isNotEmpty(extra)) {
           paths.prepend(extra)
         }
-        print(getMainClass(new JarFile(a)) + "@" + paths.mkString(File.pathSeparator))
+        if (a.isDirectory) {
+          print("none@" + paths.mkString(File.pathSeparator))
+        } else {
+          print(getMainClass(new JarFile(a)) + "@" + paths.mkString(File.pathSeparator))
+        }
         System.exit(0)
       case None => System.exit(-1)
     }
@@ -72,7 +94,7 @@ object Classpath {
     if (null != manifest) {
       mainClass = manifest.getMainAttributes.getValue("Main-Class")
     }
-    if (Strings.isBlank(mainClass)) mainClass = "cannot.find.mainclass"
+    if (Strings.isBlank(mainClass)) mainClass = "none"
     jarFile.close()
     mainClass
   }
