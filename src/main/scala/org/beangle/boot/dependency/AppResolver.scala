@@ -36,13 +36,15 @@ object AppResolver {
 
   private var verbose = true
 
+  private var preferWar = false
+
   /** 解析一个war或者jar文件，如果成功，则输出这个文件的绝对地址。
    *
-   * @param args
+   * @param args program args
    */
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
-      println("Usage:java org.beangle.boot.dependency.AppResolver artifact_file [--remote=remote_url] [--local=local_base] [--quiet]")
+      println("Usage:java org.beangle.boot.dependency.AppResolver artifact_file [--remote=remote_url] [--local=local_base] [--quiet] [--preferwar]")
       return
     }
     val artifactURI = args(0)
@@ -54,6 +56,8 @@ object AppResolver {
         remote = arg.substring("--remote=".length).trim
       else if arg.startsWith("--local=") then
         local = arg.substring("--local=".length).trim
+      else if arg == "--preferwar" then
+        preferWar = true
       else if arg == "--quiet" then
         verbose = false
     }
@@ -68,16 +72,22 @@ object AppResolver {
         missingSize = missing.size
         if verbose then Console.err.println("Missing: " + missing.mkString(","))
       }
+      print(a.getAbsolutePath)
     }
     System.exit(if dest.isEmpty || missingSize > 0 then 1 else 0)
   }
 
   def fetch(file: String, remoteRepos: Seq[Repo.Remote], localRepo: Repo.Local, verbose: Boolean = true): Option[File] = {
     if (file.contains(":") && !file.contains("/") && !file.contains("\\")) {
-      val war = Artifact(file)
-      new ArtifactDownloader(remoteRepos, localRepo, verbose).download(List(war))
-      if !localRepo.exists(war) then error("Cannot download:" + file)
-      else Some(new File(localRepo.file(war).getAbsolutePath))
+      val jar = Artifact(file)
+      if (preferWar && jar.packaging == "jar") {
+        val war = jar.packaging("war")
+        new ArtifactDownloader(remoteRepos, localRepo, verbose).download(List(war))
+        if localRepo.exists(war) then return Some(new File(localRepo.file(war).getAbsolutePath))
+      }
+      new ArtifactDownloader(remoteRepos, localRepo, verbose).download(List(jar))
+      if !localRepo.exists(jar) then error("Cannot download:" + file)
+      else Some(new File(localRepo.file(jar).getAbsolutePath))
     } else if (isApp(file)) {
       val localFile = new File(file)
       if localFile.exists then Some(localFile)
@@ -96,6 +106,15 @@ object AppResolver {
     None
   }
 
+  /** resolve war file
+   * It will be invoke by others
+   *
+   * @param file        war file
+   * @param remoteRepos remote repos
+   * @param localRepo   local repo
+   * @param verbose     verbose output
+   * @return
+   */
   def process(file: File, remoteRepos: Seq[Repo.Remote],
               localRepo: Repo.Local, verbose: Boolean = true): (Iterable[Archive], Iterable[Archive]) = {
     val archives = resolveArchive(file)
@@ -113,11 +132,9 @@ object AppResolver {
     }
 
     new ArtifactDownloader(remoteRepos, localRepo, verbose).download(artifacts)
-    missing ++= archives.filter { x =>
-      x match {
-        case a: Artifact => !localRepo.file(a).exists
-        case _ => false
-      }
+    missing ++= archives.filter {
+      case a: Artifact => !localRepo.file(a).exists
+      case _ => false
     }
     (archives, missing)
   }
