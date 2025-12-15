@@ -18,7 +18,7 @@
 package org.beangle.boot.artifact
 
 import org.beangle.boot.artifact.Repo.LocalSnapshot
-import org.beangle.commons.io.{Dirs, Files}
+import org.beangle.commons.io.Dirs
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -50,6 +50,14 @@ class RepoTest extends AnyFunSpec with Matchers {
       val path = file.getAbsolutePath.replace("\\", "/")
       println(path)
       path should equal(base.replace("\\", "/") + "/org/beangle/commons/beangle-commons/5.0.0-SNAPSHOT/beangle-commons-5.0.0-20250803.132600-31.jar")
+    }
+    it("validate timesetmap version") {
+      assert(!LocalSnapshot.isValidTimestampVersion(""))
+      assert(!LocalSnapshot.isValidTimestampVersion("20230343"))
+      assert(!LocalSnapshot.isValidTimestampVersion("20230343-02"))
+      assert(!LocalSnapshot.isValidTimestampVersion("19980202.121234-tmp"))
+      assert(!LocalSnapshot.isValidTimestampVersion("19980230.250921-123"))
+      assert(LocalSnapshot.isValidTimestampVersion("19980202.121234-23"))
     }
   }
 }

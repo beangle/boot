@@ -17,6 +17,7 @@
 
 package org.beangle.boot.artifact
 
+import org.beangle.boot.artifact.Repo.LocalSnapshot.isValidTimestampVersion
 import org.beangle.boot.artifact.util.Delta
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.Files./
@@ -26,6 +27,8 @@ import org.beangle.commons.net.http.HttpUtils
 
 import java.io.File
 import java.net.HttpURLConnection
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 object Repo {
 
@@ -85,8 +88,44 @@ object Repo {
         if (fullPath.endsWith(/)) fullPath.substring(0, fullPath.length - 1) else fullPath
       }
     }
+
+    /** 判断时间戳格式是否正确
+     * date.time-build,etc.20250803.132600-31
+     *
+     * @param ver date.time-build version string
+     * @return
+     */
+    def isValidTimestampVersion(ver: String): Boolean = {
+      val dotIdx = ver.indexOf('.')
+      val slashIdx = ver.indexOf('-')
+
+      if (dotIdx == -1 || slashIdx == -1 || dotIdx > slashIdx || slashIdx == ver.length - 1) {
+        false
+      } else {
+        val date = ver.substring(0, dotIdx)
+        val time = ver.substring(dotIdx + 1, slashIdx)
+        val build = ver.substring(slashIdx + 1)
+        if (date.length == 8 && time.length == 6 && build.nonEmpty) {
+          val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+          try {
+            LocalDateTime.parse(date + time, formatter)
+            build.toInt
+            true
+          } catch {
+            case e: Exception => false
+          }
+        } else {
+          false
+        }
+      }
+    }
   }
 
+  /** 本地快照仓库，该仓库往往存放传统的snapshot和带有时间戳的工件
+   * 一般位置位于~/.m2/snapshots,而不是放在~/.m2/repository下
+   *
+   * @param base
+   */
   class LocalSnapshot(val base: String) extends Repository {
     new File(base).mkdirs()
 
@@ -102,16 +141,22 @@ object Repo {
         val children = parent.list()
         val snapshots = if null == children then List.empty else children.toList
         val versions = Collections.newBuffer[SnaphotTimestamp]
+        //etc. beangle-common-5.6.33-SNAPSHOT => beangle-common-5.6.33-
         val prefix = artifact.artifactId + "-" + Strings.replace(artifact.version, "-SNAPSHOT", "") + "-"
         for (s <- snapshots) {
+          //find timestamp-build format(etc. 20250803.132600-31)
           if (s.startsWith(prefix) && s.endsWith(ext)) {
             val ts = Strings.substringBetween(s, prefix, ext)
-            versions += new SnaphotTimestamp(ts)
+            if (isValidTimestampVersion(ts)) {
+              versions += new SnaphotTimestamp(ts)
+            }
           }
         }
         val rs = versions.sorted
-        if (rs.isEmpty) directfile
-        else {
+        if (rs.isEmpty) {
+          directfile
+        } else {
+          //把路径更换成带有时间戳的路径
           var filePath = url(artifact)
           filePath = Strings.replace(filePath, "SNAPSHOT" + ext, rs.last.toString + ext)
           new File(filePath)
