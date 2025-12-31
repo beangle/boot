@@ -183,7 +183,7 @@ class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val loca
   }
 
   protected def logInfo(msg: String): Unit = {
-    if verbose then println(s"\r$msg")
+    if verbose then println(msg)
   }
 
 }

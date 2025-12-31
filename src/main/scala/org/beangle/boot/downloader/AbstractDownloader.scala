@@ -31,7 +31,7 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
   var verbose: Boolean = true
 
   protected def logInfo(msg: String): Unit = {
-    if verbose then println(s"\r$msg")
+    if verbose then println(msg)
   }
 
   def contentLength: Long = {
