@@ -18,17 +18,21 @@
 package org.beangle.boot.downloader
 
 import org.beangle.boot.artifact.util.FileSize
+import org.beangle.commons.io.IOs
+import org.beangle.commons.net.http.HttpUtils.followRedirect
 
 import java.io.{File, FileOutputStream, InputStream, OutputStream}
 import java.net.{URL, URLConnection}
-import org.beangle.commons.io.IOs
-import org.beangle.commons.net.http.HttpUtils.followRedirect
 
 abstract class AbstractDownloader(val name: String, val url: URL, protected val location: File) extends Downloader {
 
   protected var status: Downloader.Status = _
   protected var startAt: Long = _
   var verbose: Boolean = true
+
+  protected def logInfo(msg: String): Unit = {
+    if verbose then println(s"\r$msg")
+  }
 
   def contentLength: Long = {
     if (null == status) 0 else status.total

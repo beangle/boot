@@ -24,11 +24,12 @@ import java.net.URL
 
 class DefaultDownloader(id: String, url: URL, location: File) extends AbstractDownloader(id, url, location) {
   protected override def downloading(): Unit = {
-    val urlStatus = Detector.access(this.url)
+    val urlStatus = HttpUtils.access(this.url)
     if (urlStatus.length < 0) {
+      logInfo("Cannot download " + this.url + s",due to content lenth is ${urlStatus.length}")
       return
     }
-    if verbose then println("\rDownloading " + this.url)
+    logInfo("Downloading " + this.url)
     super.defaultDownloading(this.url.openConnection())
   }
 }

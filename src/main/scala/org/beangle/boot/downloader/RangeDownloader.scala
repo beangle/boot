@@ -21,6 +21,7 @@ import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.IOs
 import org.beangle.commons.lang.Strings
 import org.beangle.commons.net.Networks
+import org.beangle.commons.net.http.HttpUtils
 
 import java.io.*
 import java.net.{HttpURLConnection, URL}
@@ -52,17 +53,17 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
   }
 
   protected override def downloading(): Unit = {
-    val urlStatus = Detector.access(this.url)
+    val urlStatus = HttpUtils.access(this.url)
     if (urlStatus.length < 0) {
       return
     }
     //小于1M的普通下载
     if (urlStatus.length <= 1024 * 1024 || !urlStatus.supportRange) {
-      if (verbose) println("\rDownloading " + urlStatus.target + "[" + urlStatus.length + "b]")
+      logInfo("Downloading " + urlStatus.target + "[" + urlStatus.length + "b]")
       super.defaultDownloading(urlStatus.target.openConnection)
       return
     } else {
-      if (verbose) println("\rRange-Downloading " + this.url)
+      logInfo("Range-Downloading " + this.url)
     }
     this.status = new Downloader.Status(urlStatus.length)
     if (this.status.total > java.lang.Integer.MAX_VALUE) {
@@ -151,7 +152,7 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
         val sizeRange = Strings.split(Strings.substringAfterLast(p.getName, ".part_"), "_")
         val size = (sizeRange(1).toLong - sizeRange(0).toLong + 1)
         if (size != p.length()) {
-          println(s"${p.getCanonicalPath} is corrupted.")
+          logInfo(s"${p.getCanonicalPath} is corrupted.")
           corrupted = true
         }
       } else {

@@ -82,7 +82,7 @@ class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val loca
       for (diff <- diffs) {
         val diffFile = local.file(diff)
         if (diffFile.exists) {
-          if (verbose) println("Patching " + diff)
+          logInfo("Patching " + diff)
           Delta.patch(local.url(diff.older), local.url(diff.newer), local.url(diff))
         }
       }
@@ -107,10 +107,10 @@ class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val loca
     if (local.file(artifact).exists && !artifact.isSnapshot) {
       local.verifySha1(artifact) match {
         case None =>
-          if (verbose) println("Cannot find " + artifact.sha1 + ",Verify aborted.")
+          logInfo("Cannot find " + artifact.sha1 + ",Verify aborted.")
           false
         case Some(false) =>
-          if (verbose) println("Error sha1 for " + artifact + ",Remove it.")
+          logInfo("Error sha1 for " + artifact + ",Remove it.")
           local.remove(artifact)
           true
         case Some(true) => false
@@ -147,13 +147,13 @@ class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val loca
         idx += 1
       }
     }
-    if (verbose) {
-      val maxBufferWidth = 100
-      var i = 0
-      val splash = Array('\\', '|', '/', '-')
-      val count = statuses.size
-      while (!statuses.isEmpty && !executor.isTerminated) {
-        sleep(1000)
+
+    val maxBufferWidth = 100
+    val splash = Array('\\', '|', '/', '-')
+    var i = 0
+    while (!statuses.isEmpty && !executor.isTerminated) {
+      sleep(1000)
+      if (verbose) {
         print("\r")
         val sb = new StringBuilder()
         sb.append(splash(i % 4)).append("  ")
@@ -181,4 +181,9 @@ class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val loca
         throw new RuntimeException(e)
     }
   }
+
+  protected def logInfo(msg: String): Unit = {
+    if verbose then println(s"\r$msg")
+  }
+
 }
