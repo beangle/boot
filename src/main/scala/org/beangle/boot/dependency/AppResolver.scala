@@ -65,7 +65,7 @@ object AppResolver {
     val dest = fetch(artifactURI, remoteRepos, localRepo, verbose)
     var missingSize = 0
     dest foreach { a =>
-      val (all, missing) = process(a, remoteRepos, localRepo)
+      val (all, missing) = process(a, remoteRepos, localRepo, verbose)
       if (missing.nonEmpty) {
         missingSize = missing.size
         if verbose then Console.err.println("Missing: " + missing.mkString(","))
@@ -94,7 +94,7 @@ object AppResolver {
       if (new File(file).isDirectory) {
         Some(new File(file))
       } else {
-        throw new RuntimeException("Cannot fetch app " + file)
+        throw new RuntimeException("Cannot fetch file (" + file + ")")
       }
     }
   }
