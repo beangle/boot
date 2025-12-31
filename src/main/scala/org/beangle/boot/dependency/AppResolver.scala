@@ -154,7 +154,7 @@ object AppResolver {
     var url: URL = null
     if (isApp(file)) {
       val innerPath = if (file.endsWith(".war")) WarDependenciesFile else JarDependenciesFile
-      url = Networks.tryConnectURL("jar:file:" + artifact.getAbsolutePath + "!" + innerPath).orNull
+      url = Networks.tryConnectURL("jar:file:" + artifact.getAbsolutePath.replace('\\', '/') + "!" + innerPath).orNull
     } else if (artifact.isDirectory) {
       val nestedFile = new File(file + WarDependenciesFile)
       if (nestedFile.isFile) {
