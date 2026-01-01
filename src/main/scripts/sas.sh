@@ -121,6 +121,7 @@ parse_args(){
 
 parse_args
 
+echo "Fetching bootstrap dependency"
 download org.scala-lang scala3-library_3 $scala_ver
 download org.scala-lang scala-library $scala_lib_ver
 download org.beangle.commons beangle-commons $beangle_commons_ver
@@ -151,6 +152,7 @@ download io.smallrye.common smallrye-common-function 2.6.0
 bootpath="${bootpath:1}" #omit head :
 
 #destfile is resolved absolute file path.
+echo Resolving $warfile
 destfile=$(java -cp "$bootpath" org.beangle.boot.dependency.AppResolver $warfile --remote=$M2_REMOTE_REPO --local=$M2_REPO --quiet --preferwar)
 if [ $? -ne 0  ]; then
   echo "Cannot resolve $warfile, Launching aborted."
@@ -167,6 +169,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+echo "Detecting Classpath and Main-Class"
 bootinfo=$(java -cp "$bootpath" org.beangle.boot.launcher.Classpath $doc_base --local=$M2_REPO)
 
 if [ $? = 0 ]; then
