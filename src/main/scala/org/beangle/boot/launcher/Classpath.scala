@@ -74,10 +74,10 @@ object Classpath {
           case rf: RemoteFile => paths += rf.local(localRepo).getAbsolutePath
           case _ =>
         }
-        val extra = System.getenv("classpath_extra")
-        if (Strings.isNotEmpty(extra)) {
-          paths.prepend(extra)
-        }
+        var extra = System.getenv("classpath_extra")
+        if Strings.isEmpty(extra) then extra = System.getenv("CLASSPATH_EXTRA")
+        if Strings.isNotEmpty(extra) then paths.prepend(extra)
+
         if (a.isDirectory) {
           print("none@" + paths.mkString(File.pathSeparator))
         } else {
