@@ -1,5 +1,41 @@
 #!/bin/bash
 
+#find jarfile classpath_extra,options,args in all options
+split_args(){
+  jarfile_found=0
+  extract_cp=0
+  IFS=' ' read -r -a args_array <<< "$opts"
+  for arg in "${args_array[@]}"; do
+    if [ $extract_cp -eq 1 ]; then
+      classpath_extra="$arg"
+      extract_cp=0
+    else
+      if [[ "$arg" != -* && $jarfile_found -eq 0 ]]; then
+        jarfile="$arg"
+        jarfile_found=1
+      else
+        if [ "$arg" == "-cp" ]; then
+          extract_cp=1
+        else
+          if [ $jarfile_found -eq 0 ]; then
+            if [ "$options" == "" ]; then
+              options="$arg"
+            else
+              options="$options $arg"
+            fi
+          else
+            if [ "$args" == "" ]; then
+              args="$arg"
+            else
+              args="$args $arg"
+            fi
+          fi
+        fi
+      fi
+    fi
+  done
+}
+
 if [ $# -eq 0 ]; then
   echo "Usage:
    launch.sh [jvm_options] /path/to/jar [args]
@@ -8,54 +44,27 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
-# extra classpath_extra,it will be joined in Classpath program output
-export_extra_classpath() {
-  ## try extra classpath in options(--cp, -classpath,-class-path)
-  classpath_prefix="-cp"
-  classpath_extra=$(echo "$*" | sed 's/^.*-cp \(\S*\) .*$/\1/')
-  if [ "$*" = "$classpath_extra" ]; then
-    classpath_prefix="-classpath"
-    classpath_extra=$(echo "$*" | sed 's/^.*-classpath \(\S*\) .*$/\1/')
-  fi
-  if [ "$*" = "$classpath_extra" ]; then
-    classpath_prefix="--class-path"
-    classpath_extra=$(echo "$*" | sed 's/^.*--class-path \(\S*\) .*$/\1/')
-  fi
-
-  if [ "$*" != "$classpath_extra" ]; then
-    classpath_str="$classpath_prefix $classpath_extra"
-    export classpath_extra
-    opts="${opts#*"$classpath_str"}"
-  fi
-}
-
-#find jarfile in opts
-detect_jarfile(){
-  for arg in $opts
-  do
-    if [ "$arg" = "${arg#"-"}" ]; then
-      jarfile="$arg"
-      break;
-    fi
-  done
-
-  # try to find jar file
-  if [ -z "$jarfile" ]; then
-    echo "Cannot find jar file in args,launch was aborted."
-    exit
-  fi
-}
-
-# full command line to java
 opts="$*"
-# jar file
 jarfile=""
+classpath_extra=""
+options=""
+args=""
+split_args
 
-export_extra_classpath "$opts"
-detect_jarfile
-#get options and args of java program
-args="${opts#*$jarfile}" #parts after jarfile
-options="${opts%%$jarfile*}" #parts before jarfile
+if [ -z "$jarfile" ]; then
+  echo "Cannot find jar file in args,launch was aborted."
+  exit
+fi
+if [ -n "$classpath_extra" ]; then
+  export classpath_extra
+fi
 
 source ./resolve.sh $jarfile
+#echo jarfile is $jarfile
+#echo classpath_extra is $classpath_extra
+#echo options is $options
+#echo args is $args
+#echo CLASSPATH is $CLASSPATH
+#echo MAIN_CLASS is $MAIN_CLASS
+
 java $options $MAIN_CLASS $args

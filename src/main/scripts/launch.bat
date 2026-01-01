@@ -39,18 +39,9 @@ if errorlevel 1 (
   exit /b 1
 )
 
-REM Merge classpath_extra with CLASSPATH if exists
-if not "!classpath_extra!"=="" (
-  if not "%CLASSPATH%"=="" (
-    set "CLASSPATH=!classpath_extra!;%CLASSPATH%"
-  ) else (
-    set "CLASSPATH=!classpath_extra!"
-  )
-)
-
-rem echo classpath_extr is !classpath_extra!
 rem echo jarfile is !jarfile!
-rem echo option is !options!
+rem echo classpath_extra is !classpath_extra!
+rem echo options is !options!
 rem echo args is !args!
 rem echo CLASSPATH is !CLASSPATH!
 rem echo MAIN_CLASS is !MAIN_CLASS!
@@ -66,17 +57,17 @@ REM Note: -cp and its value are NOT added to options (they're extracted separate
 REM       Other JVM options (e.g., -Xms512m) are added to options normally
 :split_args
 set "jarfile_found=0"
-set "extract_cp_value=0"
+set "extract_cp=0"
 
 :split_str
 for /f "tokens=1,* delims= " %%a in ("!opts!") do (
   set arg=%%a
   set "opts=%%b"
 
-  if !extract_cp_value! equ 1 (
+  if !extract_cp! equ 1 (
     REM Extract classpath value from -cp (don't add to options)
     set "classpath_extra=!arg!"
-    set "extract_cp_value=0"
+    set "extract_cp=0"
   ) else (
     REM Check if argument starts with -
     set "first_char=!arg:~0,1!"
@@ -92,7 +83,7 @@ for /f "tokens=1,* delims= " %%a in ("!opts!") do (
     ) else (
       REM Check if this is -cp option (don't add to options, extract its value instead)
       if "!arg!"=="-cp" (
-        set "extract_cp_value=1"
+        set "extract_cp=1"
       ) else (
         REM Add to options or args based on jarfile_found flag
         REM All other arguments (including -Xms512m, -Xmx1024m, etc.) are added normally

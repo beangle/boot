@@ -1,29 +1,5 @@
 #!/bin/bash
 
-if [ $# -eq 0 ]; then
-  echo "Usage:
-   resolve.sh /path/to/jar
-   resolve.sh group_id:artifact_id:jar|war:version
-   resolve.sh http://host.com/path/to/jar"
-  exit 1
-fi
-
-if [ -z "$M2_REMOTE_REPO" ]; then
-  export M2_REMOTE_REPO="https://maven.aliyun.com/repository/public"
-fi
-if [ -z "$M2_REPO" ]; then
-  export M2_REPO="$HOME/.m2/repository"
-fi
-
-# launch classpath
-bootpath=""
-jar="$1"
-scala_ver="3.3.7"
-scala_lib_ver="2.13.16"
-beangle_commons_ver="5.6.33"
-commons_compress_ver="1.28.0"
-boot_ver="0.1.21"
-
 # download groupId artifactId version
 download(){
   group_id=`echo "$1" | tr . /`
@@ -51,6 +27,30 @@ download(){
   fi
 }
 
+if [ $# -eq 0 ]; then
+  echo "Usage:
+   resolve.sh /path/to/jar
+   resolve.sh group_id:artifact_id:jar|war:version
+   resolve.sh http://host.com/path/to/jar"
+  exit 1
+fi
+
+if [ -z "$M2_REMOTE_REPO" ]; then
+  export M2_REMOTE_REPO="https://maven.aliyun.com/repository/public"
+fi
+if [ -z "$M2_REPO" ]; then
+  export M2_REPO="$HOME/.m2/repository"
+fi
+
+# launch classpath
+bootpath=""
+jar="$1"
+scala_ver="3.3.7"
+scala_lib_ver="2.13.16"
+beangle_commons_ver="5.6.33"
+commons_compress_ver="1.28.0"
+boot_ver="0.1.22"
+
 download org.scala-lang scala3-library_3 $scala_ver
 download org.scala-lang scala-library $scala_lib_ver
 download org.beangle.commons beangle-commons  $beangle_commons_ver
@@ -68,8 +68,7 @@ else
   jar="$resolveResult"
 fi
 
-info=`java -cp "$bootpath" org.beangle.boot.launcher.Classpath $jar --local=$M2_REPO`
-
+info=$(java -cp "$bootpath" org.beangle.boot.launcher.Classpath $jar --local=$M2_REPO)
 if [ $? = 0 ]; then
   mainclass="${info%@*}"
   classpath="${info#*@}"
