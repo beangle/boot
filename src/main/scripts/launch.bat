@@ -3,7 +3,6 @@ REM Windows batch script to launch Java application with jar resolution
 REM Usage: launch.bat [jvm_options] jar_path_or_maven_coordinates [args]
 REM Example: launch.bat -Xmx512m C:\path\to\app.jar arg1 arg2
 REM          launch.bat -cp extra.jar com.example:myapp:jar:1.0.0 arg1
-REM Note: Use 'call launch.bat' (not just 'launch.bat') to keep environment variables
 
 setlocal enabledelayedexpansion
 
@@ -31,30 +30,17 @@ if "!jarfile!"=="" (
 )
 
 REM Call resolve.bat to get MAIN_CLASS and CLASSPATH
-set "CLASSPATH="
-set "MAIN_CLASS="
 call resolve.bat "!jarfile!"
 if errorlevel 1 (
   echo Failed to resolve jar file: !jarfile!
   exit /b 1
 )
 
-rem echo jarfile is !jarfile!
-rem echo classpath_extra is !classpath_extra!
-rem echo options is !options!
-rem echo args is !args!
-rem echo CLASSPATH is !CLASSPATH!
-rem echo MAIN_CLASS is !MAIN_CLASS!
-REM Execute java command
 java !options! %MAIN_CLASS% !args!
-
 endlocal
 goto :eof
 
-REM Split opts into options (before jarfile) and args (after jarfile)
-REM Also extract classpath_extra from -cp if present
-REM Note: -cp and its value are NOT added to options (they're extracted separately)
-REM       Other JVM options (e.g., -Xms512m) are added to options normally
+REM Split opts into classpath_extra/jarfile/options/args
 :split_args
 set "jarfile_found=0"
 set "extract_cp=0"

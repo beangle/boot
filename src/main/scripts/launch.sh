@@ -60,11 +60,4 @@ if [ -n "$classpath_extra" ]; then
 fi
 
 source ./resolve.sh $jarfile
-#echo jarfile is $jarfile
-#echo classpath_extra is $classpath_extra
-#echo options is $options
-#echo args is $args
-#echo CLASSPATH is $CLASSPATH
-#echo MAIN_CLASS is $MAIN_CLASS
-
 java $options $MAIN_CLASS $args

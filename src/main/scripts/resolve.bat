@@ -18,7 +18,7 @@ if "%~1"=="" (
 if "%M2_REMOTE_REPO%"=="" set M2_REMOTE_REPO=https://maven.aliyun.com/repository/public
 if "%M2_REPO%"=="" set M2_REPO=%USERPROFILE%\.m2\repository
 
-set jar=%1
+set jar=%~1
 set scala_ver=3.3.7
 set scala_lib_ver=2.13.16
 set beangle_commons_ver=5.6.33
