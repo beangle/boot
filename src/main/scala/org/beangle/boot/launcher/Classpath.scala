@@ -57,13 +57,13 @@ object Classpath {
           //添加war包的依赖
           val warClasses = a.getAbsolutePath + "/WEB-INF/classes"
           if (new File(warClasses).exists()) {
-            paths += warClasses
+            paths += warClasses.replace('/', File.separatorChar)
           }
           val warLib = a.getAbsolutePath + "/WEB-INF/lib"
           if (new File(warLib).exists()) {
             Dirs.on(warLib).ls() foreach { lib =>
               if (lib.endsWith(".jar")) {
-                paths += warLib + "/" + lib
+                paths += (warLib + "/" + lib).replace('/', File.separatorChar)
               }
             }
           }

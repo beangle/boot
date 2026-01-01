@@ -9,18 +9,11 @@ download(){
   bootpath=$bootpath":"$local_file
 
   if [ ! -f $local_file ]; then
-    if wget --spider $URL 2>/dev/null; then
+    if curl -O $URL 2>/dev/null; then
       echo "fetching $URL"
     else
-      echo "$URL not exists,download aborted."
+      echo "$URL not exists,installation aborted."
       exit 1
-    fi
-
-    if command -v aria2c >/dev/null 2; then
-      aria2c -x 16 $URL
-    else
-      wget $URL -O $artifact_name.part
-      mv $artifact_name.part $artifact_name
     fi
     mkdir -p "$M2_REPO/$group_id/$2/$3"
     mv $artifact_name $local_file
