@@ -9,9 +9,10 @@ download(){
 
   if [ ! -f $local_file ]; then
     if curl -O $URL 2>/dev/null; then
-      echo "fetching $URL"
+      echo "Fetching $URL"
     else
-      echo "$URL not exists,installation aborted."
+      rm -f "$remote_filename"
+      echo "Downloading Error $URL,installation aborted."
       exit 1
     fi
     mkdir -p "$M2_REPO/$group_id/$2/$3"
