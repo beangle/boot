@@ -17,19 +17,6 @@ Beangle Boot Toolkit
 
 如果使用Maven构建项目，可以只通过插件在打包的时候生成这个依赖文件，省去手工编辑。
 
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.4.2</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>com.yourcompany.project.MainClass</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.beangle.maven</groupId>
         <artifactId>beangle-maven-plugin</artifactId>
@@ -44,7 +31,34 @@ Beangle Boot Toolkit
           </execution>
         </executions>
       </plugin>
-    </plugins>
+
+如果是普通的Jar工程，则配置maven-jar-plugin,添加Main-Class，如下：
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.4.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>com.yourcompany.project.MainClass</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+
+如果是War工程，需要配置maven-war-plugin，避免打包其他依赖到WEB-INF/lib中。
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>3.0.0</version>
+          <configuration>
+            <packagingExcludes>
+            %regex[WEB-INF/lib/.*[^T].jar]
+            </packagingExcludes>
+          </configuration>
+        </plugin>
 
 在工程的pom.xml中的plugins中添加这两个插件，并配置工程的入口类`com.yourcompany.project.MainClass`，这样在打包时就可以生成依赖文件。
 
@@ -63,11 +77,11 @@ Beangle Boot Toolkit
 
 之后执行`sbt package` 将会产生`dependencies`文件。
 
-### 三、启动jar包
+## 三、启动jar包
 
 使用该工具启动jar的简便办法，执行如下命令：
 
-    curl -o launch.sh https://raw.githubusercontent.com/beangle/boot/refs/heads/main/src/main/scripts/launch.sh
+    curl -o launch.sh http://beangle.github.io/scripts/boot/launch.sh
     chmod +x launch.sh
     ./launch.sh /path/to/your/project.jar
 
@@ -80,13 +94,13 @@ Beangle Boot Toolkit
 
     ./launch.sh org.beangle.sqlplus:beangle-sqlplus:0.0.46 db.xml
 
-### 四、启动war
+## 四、启动war
 
   如果项目是个部署在tomcat中的war包，没有Main-Class的属性，日常运行的时候是直接放在容器中，不是可执行的jar包。
 那么可以使用工具包中的sas.sh脚本，直接运行该包。
 
     # 下载可执行文件
-    curl -o sas.sh https://raw.githubusercontent.com/beangle/boot/refs/heads/main/src/main/scripts/sas.sh
+    curl -o sas.sh http://beangle.github.io/scripts/boot/sas.sh
     chmod +x sas.sh
 
     # 直接执行这个war
@@ -94,7 +108,7 @@ Beangle Boot Toolkit
     # 或者指定端口
     ./sas.sh /path/to/beangle-otk-ws-0.0.22.jar --path=/tools --port=8083 --engine=undertow
 
-### 五、其他用法
+## 五、其他用法
 
 如果想在启动过程中，进行灵活定制，可以使用工程的resolve.sh脚本，它可以解析出jar对应的Main-Class和CLASSPATH两个环境变量，
 这样我们可以插入到自己的脚本中。例如，定制一个自己的start.sh：
@@ -102,7 +116,7 @@ Beangle Boot Toolkit
     #!/bin/bash
 
     #下载resolve.sh
-    curl -o resolve.sh https://raw.githubusercontent.com/beangle/boot/refs/heads/main/src/main/scripts/resolve.sh
+    curl -o resolve.sh http://beangle.github.io/scripts/boot/resolve.sh
     chmod +x resolve.sh
 
     # 同shell中直接执行resolve.sh，他会暴露MAIN-CLASS and CLASSPATH
@@ -113,4 +127,7 @@ Beangle Boot Toolkit
     # 最后执行Java
     java -Xmx1G $MAIN_CLASS
 
+## 六、Windows平台支持
+
+  需要相应的bat文件，进行运行。例如launch.sh对应的是launch.bat，resolve.sh对应的是resolve.bat(不过目前没有sas.bat支持）。
 
