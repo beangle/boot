@@ -71,7 +71,7 @@ scala_ver="3.3.7"
 scala_lib_ver="2.13.16"
 beangle_commons_ver="5.7.0"
 commons_compress_ver="1.28.0"
-boot_ver="0.1.22"
+boot_ver="0.1.23"
 
 opts="$*"
 jarfile=""

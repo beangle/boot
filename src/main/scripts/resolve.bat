@@ -23,7 +23,7 @@ set scala_ver=3.3.7
 set scala_lib_ver=2.13.16
 set beangle_commons_ver=5.7.0
 set commons_compress_ver=1.28.0
-set boot_ver=0.1.22
+set boot_ver=0.1.23
 
 set bootpath=
 
