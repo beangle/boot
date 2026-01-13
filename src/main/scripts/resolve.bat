@@ -21,7 +21,7 @@ if "%M2_REPO%"=="" set M2_REPO=%USERPROFILE%\.m2\repository
 set jar=%~1
 set scala_ver=3.3.7
 set scala_lib_ver=2.13.16
-set beangle_commons_ver=5.6.33
+set beangle_commons_ver=5.7.0
 set commons_compress_ver=1.28.0
 set boot_ver=0.1.22
 

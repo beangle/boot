@@ -21,12 +21,12 @@ ThisBuild / developers := List(
 )
 ThisBuild / description := "Beangle Boot ToolKit"
 ThisBuild / homepage := Some(url("https://beangle.github.io/boot/index.html"))
-val beangle_commons = "org.beangle.commons" % "beangle-commons" % "5.6.33"
+val beangle_commons = "org.beangle.commons" % "beangle-commons" % "5.7.0"
 
 lazy val root = (project in file("."))
   .settings(
     name := "beangle-boot",
     common,
     libraryDependencies ++= Seq(beangle_commons, apache_commons_compress),
-    libraryDependencies ++= Seq(logback_classic % "test", logback_core % "test", scalatest)
+    libraryDependencies ++= Seq(scalatest)
   )
