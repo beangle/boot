@@ -128,7 +128,7 @@ object AppResolver {
       case lf@LocalFile(n) => if (!new File(n).exists) missing += lf
       case rf@RemoteFile(u) =>
         val localFile = rf.local(localRepo)
-        new DefaultDownloader("default", Networks.url(u), localFile).start()
+        new DefaultDownloader("default", u, localFile).start()
         if !localFile.exists() then missing += rf
       case _ =>
     }

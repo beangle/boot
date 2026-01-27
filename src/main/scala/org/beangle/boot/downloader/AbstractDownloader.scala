@@ -18,13 +18,12 @@
 package org.beangle.boot.downloader
 
 import org.beangle.boot.artifact.util.FileSize
-import org.beangle.commons.io.IOs
-import org.beangle.commons.net.http.HttpUtils.followRedirect
+import org.beangle.commons.net.http.HttpUtils
 
-import java.io.{File, FileOutputStream, InputStream, OutputStream}
-import java.net.{URL, URLConnection}
+import java.io.File
+import java.net.URI
 
-abstract class AbstractDownloader(val name: String, val url: URL, protected val location: File) extends Downloader {
+abstract class AbstractDownloader(val name: String, val url: String, protected val location: File) extends Downloader {
 
   protected var status: Downloader.Status = _
   protected var startAt: Long = _
@@ -51,7 +50,7 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
 
   protected def downloading(): Unit
 
-  protected def finish(url: URL, elaps: Long): Unit = {
+  protected def finish(url: String, elaps: Long): Unit = {
     if (verbose) {
       val printurl = "\r" + name + " " + url + " "
       if (status.total < 1024) {
@@ -64,37 +63,12 @@ abstract class AbstractDownloader(val name: String, val url: URL, protected val 
     }
   }
 
-  protected def defaultDownloading(c: URLConnection): Unit = {
-    val conn = followRedirect(c, "GET")
-    var input: InputStream = null
-    var output: OutputStream = null
-    try {
-      val file = new File(location.toString + ".part")
-      file.delete()
-      val buffer = Array.ofDim[Byte](1024 * 4)
-      this.status = new Downloader.Status(conn.getContentLengthLong)
-      input = conn.getInputStream
-      output = new FileOutputStream(file)
-      var n = input.read(buffer)
-      while (-1 != n) {
-        output.write(buffer, 0, n)
-        status.count.addAndGet(n)
-        n = input.read(buffer)
-      }
-      //先关闭文件读写，再改名
-      IOs.close(input, output)
-      input = null
-      output = null
-      file.renameTo(location)
-      if (this.status.total < 0) {
-        this.status.total = this.status.count.get
-      }
-    } finally {
-      IOs.close(input, output)
+  protected def defaultDownloading(uri: URI, expectSize: Long): Unit = {
+    this.status = new Downloader.Status(expectSize)
+    if (HttpUtils.download(uri.toString, location)) {
+      this.status.count.set(location.length())
     }
-    finish(conn.getURL, System.currentTimeMillis - startAt)
+    finish(url, System.currentTimeMillis - startAt)
   }
-
-  case class ResourceStatus(status: Int, target: URL, length: Long, lastModified: Long, supportRange: Boolean)
 
 }

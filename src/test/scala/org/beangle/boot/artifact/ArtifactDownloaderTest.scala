@@ -49,10 +49,10 @@ class ArtifactDownloaderTest extends AnyFunSpec with Matchers {
       artifacts += beangle_model_3_6_3
       downloader.verbose = true
 
-      println("Download in :" + tempLocalRepo)
+      println("Download in " + tempLocalRepo)
       downloader.download(artifacts)
-      assert(new File(tempLocalRepo.getAbsolutePath +
-        "/org/beangle/commons/beangle-commons-model/3.6.3/beangle-commons-model-3.6.3.jar").exists)
+      println(tempLocalRepo.getAbsolutePath + "/org/beangle/commons/beangle-commons-model/3.6.3/beangle-commons-model-3.6.3.jar")
+      assert(new File(tempLocalRepo.getAbsolutePath + "/org/beangle/commons/beangle-commons-model/3.6.3/beangle-commons-model-3.6.3.jar").exists)
       downloader.download(List(Artifact("org.beangle.commons:beangle-commons-model:3.6.4")))
 
       //can download with password

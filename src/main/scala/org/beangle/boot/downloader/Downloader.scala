@@ -28,7 +28,7 @@ object Downloader {
 
 trait Downloader {
 
-  def url: URL
+  def url: String
 
   def start(): Unit
 

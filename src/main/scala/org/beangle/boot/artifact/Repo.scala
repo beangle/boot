@@ -22,11 +22,9 @@ import org.beangle.boot.artifact.util.Delta
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.Files./
 import org.beangle.commons.lang.{Objects, Strings}
-import org.beangle.commons.net.Networks
 import org.beangle.commons.net.http.HttpUtils
 
 import java.io.File
-import java.net.HttpURLConnection
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -260,11 +258,7 @@ object Repo {
     }
 
     override def exists(filePath: String): Boolean = {
-      try {
-        HttpUtils.access(base + filePath).isOk
-      } catch {
-        case _: Throwable => false
-      }
+      HttpUtils.isAlive(base + filePath)
     }
 
     override def hashCode: Int = id.hashCode

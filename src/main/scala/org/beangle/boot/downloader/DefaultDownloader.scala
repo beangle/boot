@@ -17,12 +17,12 @@
 
 package org.beangle.boot.downloader
 
+import org.beangle.commons.net.Networks
 import org.beangle.commons.net.http.HttpUtils
 
 import java.io.File
-import java.net.URL
 
-class DefaultDownloader(id: String, url: URL, location: File) extends AbstractDownloader(id, url, location) {
+class DefaultDownloader(id: String, url: String, location: File) extends AbstractDownloader(id, url, location) {
   protected override def downloading(): Unit = {
     val urlStatus = HttpUtils.access(this.url)
     if (urlStatus.length < 0) {
@@ -30,6 +30,6 @@ class DefaultDownloader(id: String, url: URL, location: File) extends AbstractDo
       return
     }
     logInfo("Downloading " + this.url)
-    super.defaultDownloading(this.url.openConnection())
+    super.defaultDownloading(Networks.uri(this.url),urlStatus.length)
   }
 }

@@ -30,11 +30,11 @@ import scala.collection.mutable
 
 object RangeDownloader {
   def apply(name: String, url: String, location: String): RangeDownloader = {
-    new RangeDownloader(name, Networks.url(url), new File(location))
+    new RangeDownloader(name, url, new File(location))
   }
 }
 
-class RangeDownloader(name: String, url: URL, location: File) extends AbstractDownloader(name, url, location) {
+class RangeDownloader(name: String, url: String, location: File) extends AbstractDownloader(name, url, location) {
 
   var threads: Int = 10
 
@@ -60,7 +60,7 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
     //小于1M的普通下载
     if (urlStatus.length <= 1024 * 1024 || !urlStatus.supportRange) {
       logInfo("Downloading " + urlStatus.target + "[" + urlStatus.length + "b]")
-      super.defaultDownloading(urlStatus.target.openConnection)
+      super.defaultDownloading(urlStatus.target,urlStatus.length)
       return
     } else {
       logInfo("Range-Downloading " + this.url)
@@ -90,7 +90,7 @@ class RangeDownloader(name: String, url: URL, location: File) extends AbstractDo
         var input: InputStream = null
         var output: OutputStream = null
         try {
-          val connection = urlStatus.target.openConnection.asInstanceOf[HttpURLConnection]
+          val connection = urlStatus.target.toURL.openConnection.asInstanceOf[HttpURLConnection]
           connection.setRequestProperty("RANGE", "bytes=" + start + "-" + end)
           output = new FileOutputStream(part)
           properties foreach (e => connection.setRequestProperty(e._1, e._2))

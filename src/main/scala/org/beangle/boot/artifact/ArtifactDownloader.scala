@@ -57,7 +57,7 @@ class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val loca
   }
 
   def download(artifacts: Iterable[Artifact]): Unit = {
-    val statuses = new ConcurrentHashMap[URL, Downloader]
+    val statuses = new ConcurrentHashMap[String, Downloader]
     val executor = Executors.newFixedThreadPool(maxthread)
 
     val sha1s = new collection.mutable.ArrayBuffer[Artifact]
@@ -120,7 +120,7 @@ class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val loca
     }
   }
 
-  private def doDownload(products: Iterable[RepoArchive], executor: ExecutorService, statuses: ConcurrentHashMap[URL, Downloader]): Unit = {
+  private def doDownload(products: Iterable[RepoArchive], executor: ExecutorService, statuses: ConcurrentHashMap[String, Downloader]): Unit = {
     if (products.size <= 0) return
     var idx = 1
     for (artifact <- products) {
