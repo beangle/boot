@@ -261,8 +261,7 @@ object Repo {
 
     override def exists(filePath: String): Boolean = {
       try {
-        val hc = HttpUtils.followRedirect(Networks.openURL(base + filePath), "HEAD")
-        hc.getResponseCode == HttpURLConnection.HTTP_OK
+        HttpUtils.access(base + filePath).isOk
       } catch {
         case _: Throwable => false
       }
