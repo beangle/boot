@@ -24,7 +24,6 @@ import org.beangle.commons.codec.binary.Base64
 import org.beangle.commons.collection.Collections
 
 import java.io.IOException
-import java.net.URL
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService, Executors}
 import scala.jdk.javaapi.CollectionConverters.asScala
 
@@ -128,7 +127,7 @@ class ArtifactDownloader(private val remotes: Seq[Repo.Remote], private val loca
         val id = idx
         remotes.find(r => r.exists(artifact)) match
           case None =>
-            println(s"Not found(${remotes.size} mirrors):" + artifact.url)
+            if (verbose) println(s"Not found(${remotes.size} mirrors):" + artifact.url)
           case Some(remote) =>
             val downloader = RangeDownloader(s"$id/${products.size}", remote.url(artifact), local.url(artifact))
             downloader.verbose = verbose

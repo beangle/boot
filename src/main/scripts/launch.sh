@@ -69,9 +69,9 @@ bootpath=""
 jar="$1"
 scala_ver="3.3.7"
 scala_lib_ver="2.13.16"
-beangle_commons_ver="5.7.0"
+beangle_commons_ver="6.0.5"
 commons_compress_ver="1.28.0"
-boot_ver="0.1.23"
+boot_ver="0.1.26"
 
 opts="$*"
 jarfile=""
@@ -103,9 +103,10 @@ download org.apache.commons commons-compress $commons_compress_ver
 download org.beangle.boot beangle-boot $boot_ver
 bootpath="${bootpath:1}" #omit head :
 
-echo Resolving $jarfile
+#echo Resolving $jarfile
 resolveResult=$(java -cp "$bootpath" org.beangle.boot.dependency.AppResolver $jarfile --remote=$M2_REMOTE_REPO --local=$M2_REPO --quiet)
-if [ $? -ne 0  ]; then
+java_exit_code=$?
+if [ $java_exit_code -ne 0  ]; then
   echo $resolveResult
   echo "Cannot resolve $jarfile, resolving aborted."
   exit 1;
@@ -113,7 +114,7 @@ else
   jarfile="$resolveResult"
 fi
 
-echo "Detecting Classpath and Main-Class"
+#echo "Detecting Classpath and Main-Class"
 info=$(java -cp "$bootpath" org.beangle.boot.launcher.Classpath $jarfile --local=$M2_REPO)
 if [ $? = 0 ]; then
   mainclass="${info%@*}"
