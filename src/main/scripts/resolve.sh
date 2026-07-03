@@ -1,5 +1,14 @@
 #!/bin/bash
 
+_resolve_fail() {
+  local code="${1:-1}"
+  if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+    return "$code"
+  else
+    exit "$code"
+  fi
+}
+
 # download groupId artifactId version
 download(){
   group_id=`echo "$1" | tr . /`
@@ -14,7 +23,7 @@ download(){
     else
       rm -f "$remote_filename"
       echo "Downloading Error $URL,installation aborted."
-      exit 1
+      _resolve_fail 1
     fi
     mkdir -p "$M2_REPO/$group_id/$2/$3"
     mv $artifact_name $local_file
@@ -23,10 +32,15 @@ download(){
 
 if [ $# -eq 0 ]; then
   echo "Usage:
-   resolve.sh /path/to/jar
-   resolve.sh group_id:artifact_id:jar|war:version
-   resolve.sh http://host.com/path/to/jar"
-  exit 1
+   resolve.sh /path/to/jar [classpath_file]
+   resolve.sh group_id:artifact_id:jar|war:version [classpath_file]
+   resolve.sh http://host.com/path/to/jar [classpath_file]
+
+  After sourcing, launch with:
+   java -cp @\$CLASSPATH_FILE \$MAIN_CLASS [args]
+
+  classpath_file defaults to ./classpath (absolute path in CLASSPATH_FILE)."
+  _resolve_fail 1
 fi
 
 if [ -z "$M2_REMOTE_REPO" ]; then
@@ -39,6 +53,7 @@ fi
 # launch classpath
 bootpath=""
 jar="$1"
+classpath_file_arg="$2"
 scala_ver="3.3.7"
 scala_lib_ver="2.13.16"
 beangle_commons_ver="6.1.0"
@@ -57,7 +72,7 @@ resolveResult=$(java -cp "$bootpath" org.beangle.boot.dependency.AppResolver $ja
 if [ $? -ne 0  ]; then
   echo $resolveResult
   echo "Cannot resolve $jar, resolving aborted."
-  exit 1;
+  _resolve_fail 1;
 else
   jar="$resolveResult"
 fi
@@ -68,12 +83,22 @@ if [ $? = 0 ]; then
   classpath="${info#*@}"
   if [ "none" = "$mainclass" ]; then
     echo "Cannot find Main-Class in MANIFEST.MF of $jar"
-    exit 1;
+    _resolve_fail 1;
   else
-    export CLASSPATH="$classpath"
+    classpath_file="${classpath_file_arg:-classpath}"
+    if [[ "$classpath_file" != /* ]]; then
+      classpath_file="$(pwd)/$classpath_file"
+    fi
+    classpath_dir="$(dirname "$classpath_file")"
+    if [ ! -d "$classpath_dir" ]; then
+      echo "Classpath directory does not exist: $classpath_dir"
+      _resolve_fail 1
+    fi
+    printf '%s' "$classpath" > "$classpath_file"
+    export CLASSPATH_FILE="$classpath_file"
     export MAIN_CLASS="$mainclass"
   fi
 else
    echo $info
-   exit 1;
+   _resolve_fail 1;
 fi
