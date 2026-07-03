@@ -18,7 +18,8 @@
 package org.beangle.boot.launcher
 
 import org.beangle.boot.artifact.*
-import org.beangle.boot.dependency.AppResolver.{fetch, resolveArchive}
+import org.beangle.boot.artifact.Repo as MavenRepo
+import org.beangle.boot.dependency.AppResolver.resolveArchive
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.io.Dirs
 import org.beangle.commons.lang.Strings
@@ -30,62 +31,67 @@ object Classpath {
 
   def main(args: Array[String]): Unit = {
     if (args.length < 1) {
-      println("Usage:java org.beangle.boot.launcher.Classpath artifact_file [--remote=remote_url] [--local=local_base]")
+      println("Usage:java org.beangle.boot.launcher.Classpath artifact_file [--local=local_base]")
       System.exit(-1)
     }
-    val artifactURI = args(0)
+    val artifactPath = args(0)
     var local: String = null
-    var remote = Seq(Repo.Remote.AliyunURL, Repo.Remote.HuaweiCloudURL, Repo.Remote.CentralURL).mkString(",")
     args foreach { arg =>
-      if arg.startsWith("--remote=") then
-        remote = arg.substring("--remote=".length).trim
-      else if arg.startsWith("--local=") then
+      if arg.startsWith("--local=") then
         local = arg.substring("--local=".length).trim
     }
-    if !remote.contains(Repo.Remote.CentralURL) then remote += "," + Repo.Remote.CentralURL
-    val remoteRepos = Repo.remotes(remote)
-    val localRepo = new Repo.Local(local)
+    val artifact = new File(artifactPath)
+    if !artifact.exists() then
+      Console.err.println(s"Cannot find $artifactPath")
+      System.exit(-1)
 
-    fetch(artifactURI, remoteRepos, localRepo, false) match {
-      case Some(a) =>
-        val archives = resolveArchive(a)
-        val paths = Collections.newBuffer[String]
-        //如果是jar包,则把该包放到classpath中
-        if (a.isFile && a.getName.endsWith(".jar")) {
-          paths += a.getAbsolutePath
-        } else if (a.isDirectory) {
-          //添加war包的依赖
-          val warClasses = a.getAbsolutePath + "/WEB-INF/classes"
-          if (new File(warClasses).exists()) {
-            paths += warClasses.replace('/', File.separatorChar)
-          }
-          val warLib = a.getAbsolutePath + "/WEB-INF/lib"
-          if (new File(warLib).exists()) {
-            Dirs.on(warLib).ls() foreach { lib =>
-              if (lib.endsWith(".jar")) {
-                paths += (warLib + "/" + lib).replace('/', File.separatorChar)
-              }
-            }
-          }
-        }
-        archives foreach {
-          case a: Artifact => paths += localRepo.file(a).getAbsolutePath
-          case LocalFile(n) => paths += n
-          case rf: RemoteFile => paths += rf.local(localRepo).getAbsolutePath
-          case _ =>
-        }
-        var extra = System.getenv("classpath_extra")
-        if Strings.isEmpty(extra) then extra = System.getenv("CLASSPATH_EXTRA")
-        if Strings.isNotEmpty(extra) then paths.prepend(extra)
-
-        if (a.isDirectory) {
-          print("none@" + paths.mkString(File.pathSeparator))
-        } else {
-          print(getMainClass(new JarFile(a)) + "@" + paths.mkString(File.pathSeparator))
-        }
-        System.exit(0)
-      case None => System.exit(-1)
+    val localRepo = new MavenRepo.Local(local)
+    val archives = resolveArchive(artifact)
+    val missing = Collections.newBuffer[Artifact]
+    archives foreach {
+      case a: Artifact => if !localRepo.exists(a) then missing += a
+      case _ =>
     }
+    if (missing.nonEmpty) {
+      Console.err.println("Missing: " + missing.mkString(","))
+      System.exit(-1)
+    }
+
+    val paths = Collections.newBuffer[String]
+    //如果是jar包,则把该包放到classpath中
+    if (artifact.isFile && artifact.getName.endsWith(".jar")) {
+      paths += artifact.getAbsolutePath
+    } else if (artifact.isDirectory) {
+      //添加war包的依赖
+      val warClasses = artifact.getAbsolutePath + "/WEB-INF/classes"
+      if (new File(warClasses).exists()) {
+        paths += warClasses.replace('/', File.separatorChar)
+      }
+      val warLib = artifact.getAbsolutePath + "/WEB-INF/lib"
+      if (new File(warLib).exists()) {
+        Dirs.on(warLib).ls() foreach { lib =>
+          if (lib.endsWith(".jar")) {
+            paths += (warLib + "/" + lib).replace('/', File.separatorChar)
+          }
+        }
+      }
+    }
+    archives foreach {
+      case a: Artifact => paths += localRepo.file(a).getAbsolutePath
+      case LocalFile(n) => paths += n
+      case rf: RemoteFile => paths += rf.local(localRepo).getAbsolutePath
+      case _ =>
+    }
+    var extra = System.getenv("classpath_extra")
+    if Strings.isEmpty(extra) then extra = System.getenv("CLASSPATH_EXTRA")
+    if Strings.isNotEmpty(extra) then paths.prepend(extra)
+
+    if (artifact.isDirectory) {
+      print("none@" + paths.mkString(File.pathSeparator))
+    } else {
+      print(getMainClass(new JarFile(artifact)) + "@" + paths.mkString(File.pathSeparator))
+    }
+    System.exit(0)
   }
 
   private def getMainClass(jarFile: JarFile): String = {

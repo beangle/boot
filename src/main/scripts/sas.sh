@@ -19,9 +19,9 @@ export scala_ver=3.3.7
 export scala_lib_ver=2.13.16
 export scalaxml_ver=2.4.0
 export beangle_sas_ver=0.13.10
-export beangle_commons_ver=6.1.0
-export beangle_template_ver=0.2.6
-export beangle_boot_ver=0.1.27
+export beangle_commons_ver=6.2.1
+export beangle_template_ver=0.2.8
+export beangle_boot_ver=0.1.28
 export slf4j_ver=2.0.17
 export logback_ver=1.5.24
 export logback_access_ver=2.0.6
@@ -70,17 +70,22 @@ download(){
   URL="$M2_REMOTE_REPO/$group_id/$2/$3/$2-$3.jar"
   artifact_name="$2-$3.jar"
   local_file="$M2_REPO/$group_id/$2/$3/$2-$3.jar"
-  bootpath=$bootpath":"$local_file
+  bootpath="$bootpath:$local_file"
 
-  if [ ! -f $local_file ]; then
-    if curl -O $URL 2>/dev/null; then
-      echo "fetching $URL"
+  if [ -f "$local_file" ] && [ "$(head -c 2 "$local_file")" != "PK" ]; then
+    rm -f "$local_file"
+  fi
+
+  if [ ! -f "$local_file" ]; then
+    echo "fetching $URL"
+    if curl -fsSL -o "$artifact_name" "$URL" 2>/dev/null && [ "$(head -c 2 "$artifact_name")" = "PK" ]; then
+      mkdir -p "$M2_REPO/$group_id/$2/$3"
+      mv "$artifact_name" "$local_file"
     else
+      rm -f "$artifact_name"
       echo "$URL not exists,installation aborted."
       exit 1
     fi
-    mkdir -p "$M2_REPO/$group_id/$2/$3"
-    mv $artifact_name $local_file
   fi
 }
 
