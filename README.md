@@ -66,7 +66,7 @@ Beangle Boot Toolkit
 
 将如下代码片段放在工程的project/plugin.sbt文件中。
 
-    addSbtPlugin("org.beangle.build" % "sbt-beangle-build" % "0.0.15")
+    addSbtPlugin("org.beangle.build" % "sbt-beangle-build" % "0.1.5")
 
 然后在build.sbt文件中配置入口类，并激活BootPlugin。
 
