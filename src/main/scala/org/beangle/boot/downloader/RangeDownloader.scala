@@ -27,6 +27,7 @@ import java.io.*
 import java.net.{HttpURLConnection, URL}
 import java.util.concurrent.{Callable, ExecutorService, Executors}
 import scala.collection.mutable
+import scala.compiletime.uninitialized
 
 object RangeDownloader {
   def apply(name: String, url: String, location: String): RangeDownloader = {
@@ -38,7 +39,7 @@ class RangeDownloader(name: String, url: String, location: File) extends Abstrac
 
   var threads: Int = 10
 
-  private var executor: ExecutorService = _
+  private var executor: ExecutorService = uninitialized
 
   private val properties = Collections.newMap[String, String]
 

@@ -36,21 +36,21 @@ class ArtifactTest extends AnyFunSpec with Matchers {
 
   describe("artifact ") {
     it("to string") {
-      artifact.toString should be equals ("org.beangle.commons:beangle-commons-core_2.12:4.6.2:sources:jar")
-      jsonlib1.toString should be equals ("net.sf.json-lib:json-lib:2.4:jdk15:jar")
-      jsonlib2.toString should be equals ("net.sf.json-lib:json-lib:2.4:jdk15:jar")
-      jsonlib3.toString should be equals ("net.sf.json-lib:json-lib:2.4:jdk15:jar")
-      jsonlib1.version should be equals ("2.4")
-      jsonlib2.version should be equals ("2.4")
-      jsonlib3.version should be equals ("2.4")
+      artifact.toString should be `equals` ("org.beangle.commons:beangle-commons-core_2.12:4.6.2:sources:jar")
+      jsonlib1.toString should be `equals` ("net.sf.json-lib:json-lib:2.4:jdk15:jar")
+      jsonlib2.toString should be `equals` ("net.sf.json-lib:json-lib:2.4:jdk15:jar")
+      jsonlib3.toString should be `equals` ("net.sf.json-lib:json-lib:2.4:jdk15:jar")
+      jsonlib1.version should be `equals` ("2.4")
+      jsonlib2.version should be `equals` ("2.4")
+      jsonlib3.version should be `equals` ("2.4")
 
-      jsonlib1.packaging should be equals ("jar")
-      jsonlib2.packaging should be equals ("jar")
-      jsonlib3.packaging should be equals ("jar")
+      jsonlib1.packaging should be `equals` ("jar")
+      jsonlib2.packaging should be `equals` ("jar")
+      jsonlib3.packaging should be `equals` ("jar")
 
-      jsonlib1.classifier should be equals (Some("jdk15"))
-      jsonlib2.classifier should be equals (None)
-      jsonlib3.classifier should be equals (Some("jdk15"))
+      jsonlib1.classifier should be `equals` (Some("jdk15"))
+      jsonlib2.classifier should be `equals` (None)
+      jsonlib3.classifier should be `equals` (Some("jdk15"))
     }
 
     it("to path") {
@@ -61,7 +61,7 @@ class ArtifactTest extends AnyFunSpec with Matchers {
     it("diff path") {
       val diff = Diff(older, "4.6.2")
       val rs = local.url(diff).contains("org/beangle/commons/beangle-commons-core_2.12/4.6.2/beangle-commons-core_2.12-4.6.1_4.6.2-sources.jar.diff")
-      rs should be equals true
+      rs should be `equals` true
     }
   }
 }

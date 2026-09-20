@@ -21,7 +21,7 @@ developers := List(
 )
 description := "Beangle Boot ToolKit"
 homepage := Some(uri("https://beangle.github.io/boot/index.html"))
-val beangle_commons = "org.beangle.commons" % "beangle-commons" % "6.3.2"
+val beangle_commons = "org.beangle.commons" % "beangle-commons" % "6.3.7"
 
 lazy val root = (project in file("."))
   .settings(

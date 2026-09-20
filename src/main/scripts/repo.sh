@@ -34,14 +34,13 @@ fi
 
 jar="$1"
 shift
-scala_ver="3.3.7"
-scala_lib_ver="2.13.16"
-beangle_commons_ver="6.2.1"
+scala_ver="3.9.0"
+beangle_commons_ver="6.3.7"
 commons_compress_ver="1.28.0"
-boot_ver="0.1.28"
+boot_ver="0.1.30"
 
 bootpath="$(local_jar org.scala-lang scala3-library_3 $scala_ver)"
-bootpath="$bootpath:$(local_jar org.scala-lang scala-library $scala_lib_ver)"
+bootpath="$bootpath:$(local_jar org.scala-lang scala-library $scala_ver)"
 bootpath="$bootpath:$(local_jar org.beangle.commons beangle-commons $beangle_commons_ver)"
 bootpath="$bootpath:$(local_jar org.apache.commons commons-compress $commons_compress_ver)"
 bootpath="$bootpath:$(local_jar org.beangle.boot beangle-boot $boot_ver)"

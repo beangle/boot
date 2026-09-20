@@ -22,11 +22,12 @@ import org.beangle.commons.net.http.HttpUtils
 
 import java.io.File
 import java.net.URI
+import scala.compiletime.uninitialized
 
 abstract class AbstractDownloader(val name: String, val url: String, protected val location: File) extends Downloader {
 
-  protected var status: Downloader.Status = _
-  protected var startAt: Long = _
+  protected var status: Downloader.Status = uninitialized
+  protected var startAt: Long = uninitialized
   var verbose: Boolean = true
 
   protected def logInfo(msg: String): Unit = {

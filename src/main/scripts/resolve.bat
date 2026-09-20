@@ -19,11 +19,11 @@ if "%M2_REMOTE_REPO%"=="" set M2_REMOTE_REPO=https://maven.aliyun.com/repository
 if "%M2_REPO%"=="" set M2_REPO=%USERPROFILE%\.m2\repository
 
 set jar=%~1
-set scala_ver=3.3.7
-set scala_lib_ver=2.13.16
-set beangle_commons_ver=6.1.0
+set scala_ver=3.9.0
+set scala_lib_ver=3.9.0
+set beangle_commons_ver=6.3.7
 set commons_compress_ver=1.28.0
-set boot_ver=0.1.28
+set boot_ver=0.1.30
 
 set bootpath=
 

@@ -15,20 +15,20 @@ fi
 if [ -z "$M2_REPO" ]; then
   export M2_REPO="$HOME/.m2/repository"
 fi
-export scala_ver=3.3.7
-export scala_lib_ver=2.13.16
-export scalaxml_ver=2.4.0
-export beangle_sas_ver=0.13.10
-export beangle_commons_ver=6.2.1
-export beangle_template_ver=0.2.8
-export beangle_boot_ver=0.1.28
-export slf4j_ver=2.0.17
-export logback_ver=1.5.24
-export logback_access_ver=2.0.6
-export freemarker_ver=2.3.34
+export scala_ver=3.9.0
+export scala_lib_ver=3.9.0
+export scalaxml_ver=2.5.0
+export beangle_sas_ver=0.13.13
+export beangle_commons_ver=6.3.7
+export beangle_template_ver=0.2.14
+export beangle_boot_ver=0.1.30
+export slf4j_ver=2.0.19
+export logback_ver=1.6.3
+export freemarker_ver=2.3.35
 export commons_compress_ver=1.28.0
-export tomcat_ver=11.0.21
-export undertow_ver=2.3.24.Final
+export tomcat_ver=11.0.26
+export undertow_ver=2.4.3.Final
+export undertow_ee_ver=2.0.2.Final
 
 # launch classpath
 bootpath=""
@@ -135,24 +135,32 @@ download org.beangle.boot beangle-boot $beangle_boot_ver
 download org.slf4j slf4j-api $slf4j_ver
 download ch.qos.logback logback-core $logback_ver
 download ch.qos.logback logback-classic $logback_ver
-download org.beangle.sas beangle-sas-engine $beangle_sas_ver
 
+download org.beangle.sas beangle-sas-engine $beangle_sas_ver
 download org.apache.tomcat.embed tomcat-embed-core $tomcat_ver
 download org.apache.tomcat.embed tomcat-embed-websocket $tomcat_ver
 
 download io.undertow undertow-core $undertow_ver
-download io.undertow undertow-servlet $undertow_ver
-download org.jboss.logging jboss-logging 3.6.1.Final
-download org.jboss.threads jboss-threads 3.7.0.Final
+download io.undertow.ee undertow-servlet $undertow_ee_ver
+download io.undertow.ee undertow-websockets $undertow_ee_ver
+download org.jboss.logging jboss-logging 3.6.3.Final
+download org.jboss.threads jboss-threads 3.9.2
 download org.jboss.xnio xnio-api 3.8.16.Final
 download org.jboss.xnio xnio-nio 3.8.16.Final
 download jakarta.annotation jakarta.annotation-api 2.1.1
+download jakarta.servlet jakarta.servlet-api 6.1.0
+download jakarta.websocket jakarta.websocket-api 2.2.0
+download jakarta.websocket jakarta.websocket-client-api 2.2.0
 download org.wildfly.client wildfly-client-config 1.0.1.Final
-download org.wildfly.common wildfly-common 1.5.4.Final
-download io.smallrye.common smallrye-common-annotation 2.6.0
-download io.smallrye.common smallrye-common-constraint 2.6.0
-download io.smallrye.common smallrye-common-cpu 2.6.0
-download io.smallrye.common smallrye-common-function 2.6.0
+download org.wildfly.common wildfly-common 2.0.1
+download io.smallrye.common smallrye-common-annotation 2.14.0
+download io.smallrye.common smallrye-common-constraint 2.12.0
+download io.smallrye.common smallrye-common-cpu 2.14.0
+download io.smallrye.common smallrye-common-expression 2.4.0
+download io.smallrye.common smallrye-common-function 2.14.0
+download io.smallrye.common smallrye-common-net 2.12.0
+download io.smallrye.common smallrye-common-os 2.4.0
+download io.smallrye.common smallrye-common-ref 2.4.0
 
 bootpath="${bootpath:1}" #omit head :
 
@@ -190,18 +198,26 @@ if [ $? = 0 ]; then
     mainclass="org.beangle.sas.engine.undertow.Bootstrap"
     classpath="${bootinfo#*@}"
     classpath=$classpath${sep}$(local_path io.undertow undertow-core $undertow_ver)
-    classpath=$classpath${sep}$(local_path io.undertow undertow-servlet $undertow_ver)
-    classpath=$classpath${sep}$(local_path org.jboss.logging jboss-logging 3.6.1.Final)
-    classpath=$classpath${sep}$(local_path org.jboss.threads jboss-threads 3.7.0.Final)
+    classpath=$classpath${sep}$(local_path io.undertow.ee undertow-servlet $undertow_ee_ver)
+    classpath=$classpath${sep}$(local_path io.undertow.ee undertow-websockets $undertow_ee_ver)
+    classpath=$classpath${sep}$(local_path org.jboss.logging jboss-logging 3.6.3.Final)
+    classpath=$classpath${sep}$(local_path org.jboss.threads jboss-threads 3.9.2)
     classpath=$classpath${sep}$(local_path org.jboss.xnio xnio-api 3.8.16.Final)
     classpath=$classpath${sep}$(local_path org.jboss.xnio xnio-nio 3.8.16.Final)
     classpath=$classpath${sep}$(local_path jakarta.annotation jakarta.annotation-api 2.1.1)
+    classpath=$classpath${sep}$(local_path jakarta.servlet jakarta.servlet-api 6.1.0)
+    classpath=$classpath${sep}$(local_path jakarta.websocket jakarta.websocket-api 2.2.0)
+    classpath=$classpath${sep}$(local_path jakarta.websocket jakarta.websocket-client-api 2.2.0)
     classpath=$classpath${sep}$(local_path org.wildfly.client wildfly-client-config 1.0.1.Final)
-    classpath=$classpath${sep}$(local_path org.wildfly.common wildfly-common 1.5.4.Final)
-    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-annotation 2.6.0)
-    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-constraint 2.6.0)
-    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-cpu 2.6.0)
-    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-function 2.6.0)
+    classpath=$classpath${sep}$(local_path org.wildfly.common wildfly-common 2.0.1)
+    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-annotation 2.14.0)
+    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-constraint 2.12.0)
+    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-cpu 2.14.0)
+    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-expression 2.4.0)
+    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-function 2.14.0)
+    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-net 2.12.0)
+    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-os 2.4.0)
+    classpath=$classpath${sep}$(local_path io.smallrye.common smallrye-common-ref 2.4.0)
 
     classpath=$classpath${sep}$(local_path org.beangle.sas beangle-sas-engine $beangle_sas_ver)
     export CLASSPATH="$classpath"
