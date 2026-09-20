@@ -2,7 +2,7 @@ import org.beangle.parent.Dependencies.*
 import org.beangle.parent.Settings.*
 
 organization := "org.beangle.boot"
-version := "0.1.30-SNAPSHOT"
+version := "0.1.30"
 
 scmInfo := Some(
   ScmInfo(
